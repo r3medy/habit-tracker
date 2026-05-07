@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { useHabits } from "@/hooks/use-habits"
-import { useCompletionsRange } from "@/hooks/use-completions-range"
+import { useCompletions } from "@/hooks/use-completions"
 import { useStreaks } from "@/hooks/use-streaks"
 import { useGoals } from "@/hooks/use-goals"
 import { useUserProfile } from "@/hooks/use-user-profile"
@@ -27,20 +27,40 @@ export default function DashboardPage() {
   const { habits, isLoading: habitsLoading } = useHabits()
   const { goals, isLoading: goalsLoading } = useGoals()
 
-  // Fetch last 30 days for pie chart
-  const last30Days = useMemo(() => getLastNDays(30, timezone), [timezone])
-  const { completions: last30Completions, isLoading: last30Loading } = useCompletionsRange(last30Days, timezone)
+  // Fetch last 14 days for charts and stats
+  const last14Days = useMemo(() => getLastNDays(14, timezone), [timezone])
+  const d0 = useCompletions(last14Days[0] || "", timezone)
+  const d1 = useCompletions(last14Days[1] || "", timezone)
+  const d2 = useCompletions(last14Days[2] || "", timezone)
+  const d3 = useCompletions(last14Days[3] || "", timezone)
+  const d4 = useCompletions(last14Days[4] || "", timezone)
+  const d5 = useCompletions(last14Days[5] || "", timezone)
+  const d6 = useCompletions(last14Days[6] || "", timezone)
+  const d7 = useCompletions(last14Days[7] || "", timezone)
+  const d8 = useCompletions(last14Days[8] || "", timezone)
+  const d9 = useCompletions(last14Days[9] || "", timezone)
+  const d10 = useCompletions(last14Days[10] || "", timezone)
+  const d11 = useCompletions(last14Days[11] || "", timezone)
+  const d12 = useCompletions(last14Days[12] || "", timezone)
+  const d13 = useCompletions(last14Days[13] || "", timezone)
 
-  // Fetch last 7 days for weekly stats
-  const last7Days = useMemo(() => getLastNDays(7, timezone), [timezone])
-  const { completions: weeklyCompletions, isLoading: weeklyLoading } = useCompletionsRange(last7Days, timezone)
+  const allDays = [d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13]
+  const allCompletions = useMemo(
+    () => allDays.flatMap((d) => d.completions || []),
+    [allDays]
+  )
+  const chartLoading = allDays.some((d) => d.isLoading)
 
-  // Fetch last 90 days for heatmap (balance performance/usefulness)
-  const last90Days = useMemo(() => getLastNDays(90, timezone), [timezone])
-  const { completions: heatmapRaw, isLoading: heatmapLoading } = useCompletionsRange(last90Days, timezone)
+  // Weekly stats (last 7 days)
+  const weeklyCompletions = useMemo(
+    () => allDays.slice(0, 7).flatMap((d) => d.completions || []),
+    [allDays]
+  )
+
+  // Heatmap (last 14 days for now, expandable later)
   const heatmapCompletions = useMemo(
-    () => heatmapRaw.map((c) => ({ date: c.date, completed: c.completed })),
-    [heatmapRaw]
+    () => allDays.map((d) => (d.completions || []).map((c) => ({ date: c.date, completed: c.completed }))).flat(),
+    [allDays]
   )
 
   // Streaks
@@ -63,7 +83,7 @@ export default function DashboardPage() {
   if (habit3) streaks[habit3.id] = s3.longestStreak
   if (habit4) streaks[habit4.id] = s4.longestStreak
 
-  const isLoading = habitsLoading || goalsLoading || last30Loading || weeklyLoading || heatmapLoading
+  const isLoading = habitsLoading || goalsLoading || chartLoading
 
   // Stats calculations
   const weeklyProgress = useMemo(
@@ -94,19 +114,19 @@ export default function DashboardPage() {
       <HeatmapView
         completions={heatmapCompletions}
         timezone={timezone}
-        isLoading={heatmapLoading}
+        isLoading={chartLoading}
       />
 
       <div className="grid gap-4 md:grid-cols-2">
         <CompletionPieChart
-          completions={last30Completions}
+          completions={allCompletions}
           habits={habits || []}
-          isLoading={last30Loading}
+          isLoading={chartLoading}
         />
         <WeeklyBarChart
-          completions={last30Completions}
+          completions={allCompletions}
           habits={habits || []}
-          isLoading={last30Loading}
+          isLoading={chartLoading}
         />
       </div>
 
