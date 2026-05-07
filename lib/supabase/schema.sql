@@ -33,6 +33,17 @@ create table if not exists completions (
   unique(habit_id, date)
 );
 
+-- Daily todo list
+create table if not exists todos (
+  id uuid primary key default gen_random_uuid(),
+  text text not null,
+  date date not null,
+  completed boolean not null default false,
+  carry_over boolean not null default true,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
 -- Subtasks (single level only, shared between habits and todos)
 create table if not exists subtasks (
   id uuid primary key default gen_random_uuid(),
@@ -82,17 +93,6 @@ create table if not exists journal_entries (
   content text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
-);
-
--- Daily todo list
-create table if not exists todos (
-  id uuid primary key default gen_random_uuid(),
-  text text not null,
-  date date not null,
-  completed boolean not null default false,
-  carry_over boolean not null default true,
-  sort_order int not null default 0,
-  created_at timestamptz not null default now()
 );
 
 -- Indexes for performance
