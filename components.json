@@ -10,7 +10,7 @@
     "cssVariables": true,
     "prefix": ""
   },
-  "iconLibrary": "remixicon",
+  "iconLibrary": "lucide",
   "rtl": false,
   "menuColor": "default-translucent",
   "menuAccent": "subtle",
@@ -20,8 +20,5 @@
     "ui": "@/components/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
-  },
-  "registries": {
-    "@dotmatrix": "https://dotmatrix.zzzzshawn.cloud/r/{name}.json"
   }
 }
