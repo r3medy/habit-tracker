@@ -73,7 +73,6 @@ export default function DayDetailPage() {
               <div
                 key={habit.id}
                 className="flex items-center gap-3 rounded-lg border border-muted p-3"
-                style={{ borderLeftColor: borderColor, borderLeftWidth: "3px" }}
               >
                 <div
                   className="flex size-8 shrink-0 items-center justify-center rounded-full"

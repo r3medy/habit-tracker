@@ -25,12 +25,18 @@ interface HeatmapViewProps {
   isLoading: boolean
 }
 
-const HEATMAP_COLORS = [
-  "bg-zinc-200 dark:bg-zinc-800",
-  "bg-emerald-300 dark:bg-emerald-700",
-  "bg-emerald-400 dark:bg-emerald-600",
-  "bg-emerald-500 dark:bg-emerald-500",
-  "bg-emerald-600 dark:bg-emerald-400",
+const HEATMAP_COLORS_LIGHT = [
+  "oklch(0.93 0.005 264)",
+  "oklch(0.75 0.12 160)",
+  "oklch(0.6 0.16 160)",
+  "oklch(0.45 0.18 160)",
+]
+
+const HEATMAP_COLORS_DARK = [
+  "oklch(0.2 0.01 264)",
+  "oklch(0.55 0.12 160)",
+  "oklch(0.65 0.16 160)",
+  "oklch(0.75 0.18 160)",
 ]
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -121,7 +127,12 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
     <div className="rounded-lg border border-muted bg-background p-4">
       <h3 className="mb-4 text-sm font-medium">Activity heatmap</h3>
 
-      <div className="overflow-x-auto">
+      <style>{`
+        .heatmap-root { --h0: ${HEATMAP_COLORS_LIGHT[0]}; --h1: ${HEATMAP_COLORS_LIGHT[1]}; --h2: ${HEATMAP_COLORS_LIGHT[2]}; --h3: ${HEATMAP_COLORS_LIGHT[3]}; }
+        .dark .heatmap-root { --h0: ${HEATMAP_COLORS_DARK[0]}; --h1: ${HEATMAP_COLORS_DARK[1]}; --h2: ${HEATMAP_COLORS_DARK[2]}; --h3: ${HEATMAP_COLORS_DARK[3]}; }
+      `}</style>
+
+      <div className="overflow-x-auto heatmap-root">
         <div className="mx-auto w-fit min-w-0">
           {/* Month labels row */}
           <div className="flex" style={{ paddingLeft: `${DAY_LABEL_WIDTH + GAP}px` }}>
@@ -158,11 +169,14 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
                     <Tooltip key={`${wi}-${di}`} delayDuration={200}>
                       <TooltipTrigger asChild>
                         <button
-                          className={cn(
-                            "rounded-[2px] transition-colors hover:ring-1 hover:ring-foreground/20",
-                            HEATMAP_COLORS[day.level]
-                          )}
-                          style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px` }}
+                        className={cn(
+                          "rounded-[2px] transition-colors hover:ring-1 hover:ring-foreground/20",
+                        )}
+                        style={{
+                          backgroundColor: `var(--h${day.level})`,
+                          width: `${CELL_SIZE}px`,
+                          height: `${CELL_SIZE}px`,
+                        }}
                           onClick={() => router.push(`/day/${day.date}`)}
                         />
                       </TooltipTrigger>
@@ -183,8 +197,8 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       {/* Legend */}
       <div className="mt-4 flex items-center justify-end gap-1 text-xs text-muted-foreground">
         <span>Less</span>
-        {HEATMAP_COLORS.map((color, i) => (
-          <div key={i} className={cn("rounded-[2px]", color)} style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px` }} />
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="rounded-[2px]" style={{ backgroundColor: `var(--h${i})`, width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px` }} />
         ))}
         <span>More</span>
       </div>

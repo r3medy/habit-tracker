@@ -43,7 +43,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 flex h-full w-14 flex-col items-center border-r border-muted bg-background py-4">
+    <aside className="fixed left-0 top-0 z-40 hidden h-full w-14 flex-col items-center border-r border-muted bg-background py-4 md:flex">
       <nav className="flex flex-1 flex-col items-center gap-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")

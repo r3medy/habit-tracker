@@ -87,7 +87,6 @@ export default function HabitsPage() {
               <div
                 key={habit.id}
                 className="rounded-lg border border-muted bg-background p-3"
-                style={{ borderLeftColor: borderColor, borderLeftWidth: "3px" }}
               >
                 {isEditing ? (
                   <div className="flex items-center gap-2">

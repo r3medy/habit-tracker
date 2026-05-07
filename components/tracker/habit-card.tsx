@@ -52,7 +52,6 @@ export function HabitCard({
   return (
     <div
       className="rounded-lg border border-muted transition-colors"
-      style={{ borderLeftColor: borderColor, borderLeftWidth: "3px" }}
     >
       <div className="flex items-center gap-3 p-3">
         <div
