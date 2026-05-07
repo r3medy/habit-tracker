@@ -25,10 +25,10 @@ interface HeatmapViewProps {
 }
 
 const HEATMAP_COLORS = [
-  "bg-muted/30",
-  "bg-emerald-500/30 dark:bg-emerald-500/40",
-  "bg-emerald-500/50 dark:bg-emerald-500/60",
-  "bg-emerald-500/70 dark:bg-emerald-500/80",
+  "bg-zinc-200 dark:bg-zinc-800",
+  "bg-emerald-200 dark:bg-emerald-900",
+  "bg-emerald-400 dark:bg-emerald-700",
+  "bg-emerald-600 dark:bg-emerald-500",
 ]
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -81,7 +81,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
   }, [heatmapData])
 
   const monthLabels = useMemo(() => {
-    const labels: { month: string; offset: number }[] = []
+    const labels: { month: string; weekIndex: number }[] = []
     let lastMonth = -1
 
     for (let w = 0; w < weeks.length; w++) {
@@ -90,7 +90,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       const firstDay = week[0]
       const month = parseISO(firstDay.date).getMonth()
       if (month !== lastMonth) {
-        labels.push({ month: MONTH_LABELS[month], offset: w })
+        labels.push({ month: MONTH_LABELS[month], weekIndex: w })
         lastMonth = month
       }
     }
@@ -108,41 +108,42 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
 
   return (
     <div className="rounded-lg border border-muted bg-background p-4">
-      <h3 className="mb-4 text-sm font-medium">Activity heatmap</h3>
+      <h3 className="mb-3 text-sm font-medium">Activity heatmap</h3>
 
-      <div className="overflow-x-auto">
-        <div className="flex gap-1">
-          <div className="flex gap-1 pl-8">
-            {monthLabels.map((label, i) => (
-              <div
-                key={i}
-                className="text-xs text-muted-foreground"
-                style={{ minWidth: `${label.offset * 17 + 8}px` }}
-              >
-                {label.month}
-              </div>
-            ))}
-          </div>
+      <div className="w-full">
+        {/* Month labels */}
+        <div className="relative mb-1 ml-7 h-4">
+          {monthLabels.map((label) => (
+            <span
+              key={label.month + label.weekIndex}
+              className="absolute text-xs text-muted-foreground"
+              style={{ left: `${label.weekIndex * 12}px` }}
+            >
+              {label.month}
+            </span>
+          ))}
         </div>
 
-        <div className="flex gap-1">
-          <div className="flex flex-col gap-1">
+        <div className="flex">
+          {/* Day labels */}
+          <div className="mr-2 flex flex-col gap-0.5">
             {DAY_LABELS.map((label, i) => (
-              <div key={i} className="flex h-3 items-center justify-end pr-2 text-xs text-muted-foreground">
+              <div key={i} className="flex h-2.5 items-center justify-end pr-1 text-xs text-muted-foreground leading-none">
                 {label}
               </div>
             ))}
           </div>
 
-          <div className="flex gap-1">
+          {/* Grid */}
+          <div className="flex gap-0.5 overflow-hidden">
             {weeks.map((week, wi) => (
-              <div key={wi} className="flex flex-col gap-1">
+              <div key={wi} className="flex flex-col gap-0.5">
                 {week.map((day, di) => (
                   <Tooltip key={`${wi}-${di}`} delayDuration={200}>
                     <TooltipTrigger asChild>
                       <button
                         className={cn(
-                          "size-3 rounded-sm transition-colors hover:ring-1 hover:ring-foreground/20",
+                          "size-2.5 rounded-sm transition-colors hover:ring-1 hover:ring-foreground/30",
                           HEATMAP_COLORS[day.level]
                         )}
                         onClick={() => router.push(`/tracker?date=${day.date}`)}
@@ -161,10 +162,11 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-end gap-1 text-xs text-muted-foreground">
+      {/* Legend */}
+      <div className="mt-3 flex items-center justify-end gap-1 text-xs text-muted-foreground">
         <span>Less</span>
         {HEATMAP_COLORS.map((color, i) => (
-          <div key={i} className={cn("size-3 rounded-sm", color)} />
+          <div key={i} className={cn("size-2.5 rounded-sm", color)} />
         ))}
         <span>More</span>
       </div>
