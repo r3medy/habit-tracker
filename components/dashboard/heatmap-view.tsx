@@ -142,9 +142,9 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       <div ref={containerRef} className="flex flex-col items-center w-full">
         {/* Month labels row — each label spans the correct number of week columns */}
         <div className="flex w-fit" style={{ paddingLeft: `${dayLabelWidth + gap}px` }}>
-          {monthSpans.map((ms) => (
+          {monthSpans.map((ms, i) => (
             <div
-              key={ms.month}
+              key={`${ms.month}-${i}`}
               className="text-xs text-muted-foreground"
               style={{ width: `${ms.span * cellSize + (ms.span - 1) * gap}px` }}
             >
