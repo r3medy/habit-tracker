@@ -11,6 +11,7 @@ export type UserProfileRow = {
   name: string
   timezone: string
   has_onboarded: boolean
+  verified: boolean
   created_at: string
 }
 
@@ -19,6 +20,7 @@ export type UserProfileInsert = {
   name: string
   timezone?: string
   has_onboarded?: boolean
+  verified?: boolean
   created_at?: string
 }
 
@@ -27,6 +29,7 @@ export type UserProfileUpdate = {
   name?: string
   timezone?: string
   has_onboarded?: boolean
+  verified?: boolean
   created_at?: string
 }
 
