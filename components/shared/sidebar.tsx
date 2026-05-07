@@ -24,6 +24,7 @@ const navItems = [
   { href: "/tracker", icon: LayoutGrid, label: "Tracker" },
   { href: "/todos", icon: ListTodo, label: "Todos" },
   { href: "/dashboard", icon: BarChart3, label: "Dashboard" },
+  { href: "/habits", icon: Pencil, label: "Manage habits" },
 ]
 
 export function Sidebar() {
@@ -89,24 +90,6 @@ export function Sidebar() {
           <TooltipContent side="right">
             {mounted && theme === "dark" ? "Light mode" : "Dark mode"}
           </TooltipContent>
-        </Tooltip>
-
-        <Tooltip delayDuration={200}>
-          <TooltipTrigger asChild>
-            <Link
-              href="/habits"
-              className={cn(
-                "flex size-10 items-center justify-center rounded-lg transition-colors",
-                pathname === "/habits"
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-              aria-label="Manage habits"
-            >
-              <Pencil className="size-5" />
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="right">Manage habits</TooltipContent>
         </Tooltip>
       </div>
     </aside>
