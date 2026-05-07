@@ -94,7 +94,7 @@ export default function DayDetailPage() {
         </div>
       )}
 
-      <JournalSection />
+      <JournalSection date={date} />
     </div>
   )
 }

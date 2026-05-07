@@ -7,12 +7,16 @@ import { useUserProfile } from "@/hooks/use-user-profile"
 import { getTodayInTimeZone } from "@/lib/date-utils"
 import { cn } from "@/lib/utils"
 
-export function JournalSection() {
+interface JournalSectionProps {
+  date?: string
+}
+
+export function JournalSection({ date }: JournalSectionProps) {
   const { profile } = useUserProfile()
   const timezone = profile?.timezone || "UTC"
-  const today = getTodayInTimeZone(timezone)
+  const journalDate = date || getTodayInTimeZone(timezone)
 
-  const { entry, isLoading, saveEntry, isSaving } = useJournal(today, timezone)
+  const { entry, isLoading, saveEntry, isSaving } = useJournal(journalDate, timezone)
   const [content, setContent] = useState("")
   const [saved, setSaved] = useState(true)
 
@@ -26,12 +30,12 @@ export function JournalSection() {
     if (!profile?.id) return
     setSaved(false)
     try {
-      await saveEntry({ date: today, content: text || null, userId: profile.id })
+      await saveEntry({ date: journalDate, content: text || null, userId: profile.id })
       setSaved(true)
     } catch {
       setSaved(true)
     }
-  }, [profile?.id, today, saveEntry])
+  }, [profile?.id, journalDate, saveEntry])
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value
@@ -45,10 +49,13 @@ export function JournalSection() {
     }
   }, [saved, content, handleSave])
 
+  const isToday = journalDate === getTodayInTimeZone(timezone)
+  const heading = isToday ? "Today's reflection" : "Reflection"
+
   return (
     <div className="rounded-lg border border-muted bg-background p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-medium">Today's reflection</h3>
+        <h3 className="text-sm font-medium">{heading}</h3>
         <span className={cn("text-xs", saved ? "text-muted-foreground" : "text-amber-500")}>
           {isSaving ? "Saving..." : saved ? "Saved" : "Unsaved"}
         </span>
