@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useRef, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   format,
@@ -8,6 +8,7 @@ import {
   eachDayOfInterval,
   subDays,
   getDay,
+  getMonth,
 } from "date-fns"
 import { toZonedTime } from "date-fns-tz"
 import { getHeatmapLevel } from "@/lib/analytics-utils"
@@ -26,9 +27,10 @@ interface HeatmapViewProps {
 
 const HEATMAP_COLORS = [
   "bg-zinc-200 dark:bg-zinc-800",
-  "bg-emerald-200 dark:bg-emerald-900",
-  "bg-emerald-400 dark:bg-emerald-700",
-  "bg-emerald-600 dark:bg-emerald-500",
+  "bg-emerald-300 dark:bg-emerald-700",
+  "bg-emerald-400 dark:bg-emerald-600",
+  "bg-emerald-500 dark:bg-emerald-500",
+  "bg-emerald-600 dark:bg-emerald-400",
 ]
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -36,8 +38,10 @@ const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""]
 
 export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewProps) {
   const router = useRouter()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [cellSize, setCellSize] = useState(11)
 
-  const heatmapData = useMemo(() => {
+  const { weeks, monthPositions } = useMemo(() => {
     const now = new Date()
     const zonedNow = toZonedTime(now, timezone)
     const startDate = subDays(zonedNow, 364)
@@ -50,7 +54,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       }
     }
 
-    return days.map((day) => {
+    const dayData = days.map((day) => {
       const dateStr = format(day, "yyyy-MM-dd")
       const count = completionMap.get(dateStr) || 0
       return {
@@ -58,45 +62,57 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
         count,
         level: getHeatmapLevel(count),
         dayOfWeek: getDay(day),
+        month: getMonth(day),
       }
     })
-  }, [completions, timezone])
 
-  const weeks = useMemo(() => {
-    const result: typeof heatmapData[] = []
-    let currentWeek: typeof heatmapData = []
+    const weeks: typeof dayData[] = []
+    let currentWeek: typeof dayData = []
 
-    for (const day of heatmapData) {
+    for (const day of dayData) {
       if (day.dayOfWeek === 1 && currentWeek.length > 0) {
-        result.push(currentWeek)
+        weeks.push(currentWeek)
         currentWeek = []
       }
       currentWeek.push(day)
     }
     if (currentWeek.length > 0) {
-      result.push(currentWeek)
+      weeks.push(currentWeek)
     }
 
-    return result
-  }, [heatmapData])
-
-  const monthLabels = useMemo(() => {
-    const labels: { month: string; weekIndex: number }[] = []
+    const monthPositions: { month: string; weekIndex: number }[] = []
     let lastMonth = -1
-
     for (let w = 0; w < weeks.length; w++) {
       const week = weeks[w]
       if (!week || week.length === 0) continue
-      const firstDay = week[0]
-      const month = parseISO(firstDay.date).getMonth()
+      const month = week[0].month
       if (month !== lastMonth) {
-        labels.push({ month: MONTH_LABELS[month], weekIndex: w })
+        monthPositions.push({ month: MONTH_LABELS[month], weekIndex: w })
         lastMonth = month
       }
     }
 
-    return labels
-  }, [weeks])
+    return { weeks, monthPositions }
+  }, [completions, timezone])
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (!containerRef.current) return
+      const containerWidth = containerRef.current.clientWidth - 40
+      const weekCount = weeks.length
+      if (weekCount === 0) return
+      const maxCellSize = Math.floor((containerWidth - (weekCount - 1) * 3) / weekCount)
+      setCellSize(Math.min(Math.max(maxCellSize, 6), 13))
+    }
+
+    updateSize()
+    const observer = new ResizeObserver(updateSize)
+    if (containerRef.current) observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [weeks.length])
+
+  const gap = 3
+  const step = cellSize + gap
 
   if (isLoading) {
     return (
@@ -108,16 +124,16 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
 
   return (
     <div className="rounded-lg border border-muted bg-background p-4">
-      <h3 className="mb-3 text-sm font-medium">Activity heatmap</h3>
+      <h3 className="mb-4 text-sm font-medium">Activity heatmap</h3>
 
-      <div className="w-full">
-        {/* Month labels */}
-        <div className="relative mb-1 ml-7 h-4">
-          {monthLabels.map((label) => (
+      <div ref={containerRef} className="w-full">
+        {/* Month labels row */}
+        <div className="relative ml-8 mb-1 h-4">
+          {monthPositions.map((label, i) => (
             <span
-              key={label.month + label.weekIndex}
+              key={i}
               className="absolute text-xs text-muted-foreground"
-              style={{ left: `${label.weekIndex * 12}px` }}
+              style={{ left: `${label.weekIndex * step}px` }}
             >
               {label.month}
             </span>
@@ -126,26 +142,27 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
 
         <div className="flex">
           {/* Day labels */}
-          <div className="mr-2 flex flex-col gap-0.5">
+          <div className="flex flex-col pr-2 pt-0.5" style={{ gap: `${gap}px` }}>
             {DAY_LABELS.map((label, i) => (
-              <div key={i} className="flex h-2.5 items-center justify-end pr-1 text-xs text-muted-foreground leading-none">
+              <div key={i} className="flex items-center justify-end text-[10px] text-muted-foreground" style={{ height: `${cellSize}px` }}>
                 {label}
               </div>
             ))}
           </div>
 
           {/* Grid */}
-          <div className="flex gap-0.5 overflow-hidden">
+          <div className="flex" style={{ gap: `${gap}px` }}>
             {weeks.map((week, wi) => (
-              <div key={wi} className="flex flex-col gap-0.5">
+              <div key={wi} className="flex flex-col" style={{ gap: `${gap}px` }}>
                 {week.map((day, di) => (
                   <Tooltip key={`${wi}-${di}`} delayDuration={200}>
                     <TooltipTrigger asChild>
                       <button
                         className={cn(
-                          "size-2.5 rounded-sm transition-colors hover:ring-1 hover:ring-foreground/30",
+                          "rounded-[2px] transition-colors hover:ring-1 hover:ring-foreground/20",
                           HEATMAP_COLORS[day.level]
                         )}
+                        style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
                         onClick={() => router.push(`/tracker?date=${day.date}`)}
                       />
                     </TooltipTrigger>
@@ -163,10 +180,10 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex items-center justify-end gap-1 text-xs text-muted-foreground">
+      <div className="mt-4 flex items-center justify-end gap-1 text-xs text-muted-foreground">
         <span>Less</span>
         {HEATMAP_COLORS.map((color, i) => (
-          <div key={i} className={cn("size-2.5 rounded-sm", color)} />
+          <div key={i} className={cn("rounded-[2px]", color)} style={{ width: `${cellSize}px`, height: `${cellSize}px` }} />
         ))}
         <span>More</span>
       </div>
