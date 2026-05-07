@@ -2,8 +2,11 @@
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChevronLeft, ChevronRight, Plus, Calendar } from "lucide-react"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { ChevronLeft, ChevronRight, Plus, CalendarIcon } from "lucide-react"
 import { formatWeekRange, formatDayFull } from "@/lib/tracker-utils"
+import { parseISO } from "date-fns"
 
 interface TrackerHeaderProps {
   view: "week" | "day"
@@ -13,6 +16,7 @@ interface TrackerHeaderProps {
   weekEnd: string
   timezone: string
   onNavigate: (direction: "prev" | "next" | "today") => void
+  onDateSelect: (date: string) => void
   onAddHabit: () => void
 }
 
@@ -24,12 +28,15 @@ export function TrackerHeader({
   weekEnd,
   timezone,
   onNavigate,
+  onDateSelect,
   onAddHabit,
 }: TrackerHeaderProps) {
   const dateLabel =
     view === "week"
       ? formatWeekRange(weekStart, weekEnd, timezone)
       : formatDayFull(selectedDate, timezone)
+
+  const calendarDate = parseISO(selectedDate)
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -39,16 +46,28 @@ export function TrackerHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1 rounded-lg border border-muted bg-background px-2 py-1">
-          <Calendar className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{dateLabel}</span>
-          <Button variant="ghost" size="icon-xs" className="size-6" onClick={() => onNavigate("prev")}>
-            <ChevronLeft className="size-3" />
-          </Button>
-          <Button variant="ghost" size="icon-xs" className="size-6" onClick={() => onNavigate("next")}>
-            <ChevronRight className="size-3" />
-          </Button>
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="flex items-center gap-1 rounded-lg border border-muted bg-background px-2 py-1 hover:bg-muted/50 transition-colors">
+              <CalendarIcon className="size-4 text-muted-foreground" />
+              <span className="text-sm font-medium">{dateLabel}</span>
+              <Button variant="ghost" size="icon-xs" className="size-6" onClick={(e) => { e.stopPropagation(); onNavigate("prev") }}>
+                <ChevronLeft className="size-3" />
+              </Button>
+              <Button variant="ghost" size="icon-xs" className="size-6" onClick={(e) => { e.stopPropagation(); onNavigate("next") }}>
+                <ChevronRight className="size-3" />
+              </Button>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={calendarDate}
+              onSelect={(d) => d && onDateSelect(d.toISOString().split("T")[0])}
+              className="rounded-md border-0"
+            />
+          </PopoverContent>
+        </Popover>
 
         <Button variant="outline" size="xs" onClick={() => onNavigate("today")}>
           Today

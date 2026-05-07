@@ -122,6 +122,13 @@ export default function TrackerPage() {
     [selectedDate, view, today]
   )
 
+  const handleDateSelect = useCallback(
+    (date: string) => {
+      setSelectedDate(date)
+    },
+    []
+  )
+
   const handleToggleWeekly = useCallback(
     (habitId: string, date: string) => {
       const current = weeklyCompletions[date]?.find((c: { habit_id: string; completed: boolean }) => c.habit_id === habitId)
@@ -151,7 +158,7 @@ export default function TrackerPage() {
   )
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 overflow-x-hidden p-4 sm:p-6">
+    <div className="mx-auto max-w-5xl space-y-8 overflow-x-hidden p-4 sm:p-6">
       <TrackerHeader
         view={view}
         onViewChange={setView}
@@ -160,6 +167,7 @@ export default function TrackerPage() {
         weekEnd={weekEnd}
         timezone={timezone}
         onNavigate={handleNavigate}
+        onDateSelect={handleDateSelect}
         onAddHabit={() => setAddDialogOpen(true)}
       />
 
