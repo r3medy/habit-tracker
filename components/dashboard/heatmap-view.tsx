@@ -132,7 +132,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
         .dark .heatmap-root { --h0: ${HEATMAP_COLORS_DARK[0]}; --h1: ${HEATMAP_COLORS_DARK[1]}; --h2: ${HEATMAP_COLORS_DARK[2]}; --h3: ${HEATMAP_COLORS_DARK[3]}; }
       `}</style>
 
-      <div className="overflow-x-auto heatmap-root">
+      <div className="overflow-x-auto py-1 heatmap-root">
         <div className="mx-auto w-fit min-w-0">
           {/* Month labels row */}
           <div className="flex" style={{ paddingLeft: `${DAY_LABEL_WIDTH + GAP}px` }}>

@@ -64,7 +64,7 @@ export function TrackerHeader({
               mode="single"
               selected={calendarDate}
               onSelect={(d) => d && onDateSelect(d.toISOString().split("T")[0])}
-              className="rounded-md border-0"
+              className="rounded-md"
             />
           </PopoverContent>
         </Popover>
