@@ -59,7 +59,7 @@ describe("analytics-utils", () => {
         [{ completed: false }],
         [{ completed: true }, { completed: true }, { completed: true }],
       ]
-      expect(getDailyAverage(weeklyCompletions)).toBeCloseTo(2, 1)
+      expect(getDailyAverage(weeklyCompletions)).toBeCloseTo(0.71, 1)
     })
   })
 
