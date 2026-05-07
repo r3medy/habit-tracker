@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase/client"
+import { insertTyped, updateTyped } from "@/lib/supabase/typed"
 import type { UserProfileRow, UserProfileInsert, UserProfileUpdate } from "@/lib/supabase/types"
 
 export function useUserProfile() {
@@ -22,11 +23,7 @@ export function useUserProfile() {
 
   const updateMutation = useMutation({
     mutationFn: async (updates: UserProfileUpdate) => {
-      const { data, error } = await (supabase as any)
-        .from("user_profile")
-        .update(updates)
-        .select()
-        .single()
+      const { data, error } = await updateTyped("user_profile", updates, "id", updates.id!)
       if (error) throw error
       return data as UserProfileRow
     },
@@ -42,11 +39,7 @@ export function useUserProfile() {
         timezone: profile.timezone,
         has_onboarded: false,
       }
-      const { data, error } = await supabase
-        .from("user_profile")
-        .insert([payload] as any)
-        .select()
-        .single()
+      const { data, error } = await insertTyped("user_profile", [payload])
       if (error) throw error
       return data as UserProfileRow
     },

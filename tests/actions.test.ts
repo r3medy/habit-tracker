@@ -48,7 +48,7 @@ describe("verifyPassword", () => {
   })
 
   it("returns failure when hash is undefined", async () => {
-    vi.stubEnv("NEXT_APP_PASSWORD_HASH", undefined as any)
+    vi.stubEnv("NEXT_APP_PASSWORD_HASH", undefined as unknown as string)
     const { verifyPassword } = await import("@/app/actions")
 
     const result = await verifyPassword("password")

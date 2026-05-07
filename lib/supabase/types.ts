@@ -133,6 +133,18 @@ export type GoalInsert = {
   created_at?: string
 }
 
+export type GoalUpdate = {
+  id?: string
+  habit_id?: string
+  target_type?: "streak" | "count"
+  target_value?: number
+  start_date?: string
+  end_date?: string | null
+  completed?: boolean
+  completed_at?: string | null
+  created_at?: string
+}
+
 export type GoalMilestoneRow = {
   id: string
   goal_id: string

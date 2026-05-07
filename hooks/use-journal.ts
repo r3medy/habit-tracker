@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase/client"
+import { upsertTyped } from "@/lib/supabase/typed"
 import type { JournalEntryRow, JournalEntryInsert } from "@/lib/supabase/types"
 import { getTodayInTimeZone } from "@/lib/date-utils"
 
@@ -33,11 +34,7 @@ export function useJournal(date?: string, timezone?: string) {
         content,
         updated_at: new Date().toISOString(),
       }
-      const { data, error } = await supabase
-        .from("journal_entries")
-        .upsert([payload] as any, { onConflict: "date" })
-        .select()
-        .single()
+      const { data, error } = await upsertTyped("journal_entries", [payload], { onConflict: "date" })
       if (error) throw error
       return data as JournalEntryRow
     },

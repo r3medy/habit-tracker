@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase/client"
+import { upsertTyped } from "@/lib/supabase/typed"
 import type { CompletionRow, CompletionInsert } from "@/lib/supabase/types"
 import { getTodayInTimeZone } from "@/lib/date-utils"
 
@@ -32,11 +33,7 @@ export function useCompletions(date?: string, timezone?: string) {
         completed,
         completed_at: completed ? new Date().toISOString() : null,
       }
-      const { data, error } = await supabase
-        .from("completions")
-        .upsert([payload] as any, { onConflict: "habit_id,date" })
-        .select()
-        .single()
+      const { data, error } = await upsertTyped("completions", [payload], { onConflict: "habit_id,date" })
       if (error) throw error
       return data as CompletionRow
     },

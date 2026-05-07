@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
-import { RiLockLine, RiErrorWarningLine } from "@remixicon/react"
+import { Lock, AlertTriangle } from "lucide-react"
 
 const VERIFIED_KEY = "habit-tracker-verified"
 
@@ -38,7 +38,7 @@ export default function GatePage() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center gap-6 text-center">
           <div className="flex size-16 items-center justify-center rounded-full bg-muted">
-            <RiLockLine className="size-8 text-muted-foreground" />
+            <Lock className="size-8 text-muted-foreground" />
           </div>
 
           <div>
@@ -67,7 +67,7 @@ export default function GatePage() {
 
             {error && (
               <div className="flex items-center gap-2 text-sm text-destructive">
-                <RiErrorWarningLine className="size-4 shrink-0" />
+                <AlertTriangle className="size-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}

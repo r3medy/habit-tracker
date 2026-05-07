@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase/client"
+import { insertTyped, updateTyped, insertMilestones } from "@/lib/supabase/typed"
 import type { GoalRow, GoalInsert, GoalMilestoneInsert } from "@/lib/supabase/types"
 
 export function useGoals(habitId?: string) {
@@ -23,11 +24,7 @@ export function useGoals(habitId?: string) {
 
   const createMutation = useMutation({
     mutationFn: async (goal: GoalInsert) => {
-      const { data, error } = await supabase
-        .from("goals")
-        .insert([goal] as any)
-        .select()
-        .single()
+      const { data, error } = await insertTyped("goals", [goal])
       if (error) throw error
 
       const goalId = (data as GoalRow).id
@@ -38,7 +35,8 @@ export function useGoals(habitId?: string) {
         reached: false,
       }))
 
-      await supabase.from("goal_milestones").insert(milestones as any)
+      const milestoneError = await insertMilestones(milestones)
+      if (milestoneError) throw milestoneError
 
       return data as GoalRow
     },
@@ -49,12 +47,7 @@ export function useGoals(habitId?: string) {
 
   const completeMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await (supabase as any)
-        .from("goals")
-        .update({ completed: true, completed_at: new Date().toISOString() })
-        .eq("id", id)
-        .select()
-        .single()
+      const { data, error } = await updateTyped("goals", { completed: true, completed_at: new Date().toISOString() }, "id", id)
       if (error) throw error
       return data as GoalRow
     },

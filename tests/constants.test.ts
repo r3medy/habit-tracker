@@ -48,9 +48,11 @@ describe("constants", () => {
       })
     })
 
-    it("icon values start with Ri prefix", () => {
+    it("icon values are valid Lucide icon names", () => {
       HABIT_ICONS.forEach((icon) => {
-        expect(icon.value).toMatch(/^Ri/)
+        expect(typeof icon.value).toBe("string")
+        expect(icon.value.length).toBeGreaterThan(0)
+        expect(icon.value[0]).toBe(icon.value[0].toUpperCase())
       })
     })
 

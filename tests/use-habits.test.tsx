@@ -3,14 +3,23 @@ import { renderHook, waitFor } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ReactNode } from "react"
 
+const mockSupabase = {
+  from: vi.fn(),
+}
+
 vi.mock("@/lib/supabase/client", () => ({
-  supabase: {
-    from: vi.fn(),
-  },
+  supabase: mockSupabase,
+}))
+
+vi.mock("@/lib/supabase/typed", () => ({
+  insertTyped: vi.fn(),
+  updateTyped: vi.fn(),
+  updateSortOrder: vi.fn(),
 }))
 
 const { supabase } = await import("@/lib/supabase/client")
 const { useHabits } = await import("@/hooks/use-habits")
+const { insertTyped, updateTyped, updateSortOrder } = await import("@/lib/supabase/typed")
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -31,7 +40,7 @@ describe("useHabits", () => {
 
   describe("query", () => {
     it("fetches habits ordered by sort_order", async () => {
-      ;(supabase.from as any).mockReturnValue({
+      ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn(() => ({
           order: vi.fn(() => ({ data: [], error: null })),
         })),
@@ -47,7 +56,7 @@ describe("useHabits", () => {
     })
 
     it("returns empty array when no habits exist", async () => {
-      ;(supabase.from as any).mockReturnValue({
+      ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn(() => ({
           order: vi.fn(() => ({ data: [], error: null })),
         })),
@@ -75,7 +84,7 @@ describe("useHabits", () => {
         },
       ]
 
-      ;(supabase.from as any).mockReturnValue({
+      ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn(() => ({
           order: vi.fn(() => ({ data: mockHabits, error: null })),
         })),
@@ -104,16 +113,12 @@ describe("useHabits", () => {
         created_at: "2026-05-07T00:00:00Z",
       }
 
-      ;(supabase.from as any).mockReturnValue({
+      ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn(() => ({
           order: vi.fn(() => ({ data: [], error: null })),
         })),
-        insert: vi.fn(() => ({
-          select: vi.fn(() => ({
-            single: vi.fn(() => ({ data: newHabit, error: null })),
-          })),
-        })),
       })
+      ;(insertTyped as ReturnType<typeof vi.fn>).mockResolvedValue({ data: newHabit, error: null })
 
       const { result } = renderHook(() => useHabits(), {
         wrapper: createWrapper(),
@@ -128,13 +133,15 @@ describe("useHabits", () => {
         schedule_type: "daily",
       })
 
-      expect(supabase.from).toHaveBeenCalledWith("habits")
+      expect(insertTyped).toHaveBeenCalledWith("habits", [
+        expect.objectContaining({ name: "Meditate" }),
+      ])
     })
   })
 
   describe("deleteHabit", () => {
     it("deletes a habit by id", async () => {
-      ;(supabase.from as any).mockReturnValue({
+      ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn(() => ({
           order: vi.fn(() => ({ data: [], error: null })),
         })),
