@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useEffect, useState } from "react"
+import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import {
   format,
@@ -36,10 +36,13 @@ const HEATMAP_COLORS = [
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""]
 
+const CELL_SIZE = 11
+const GAP = 3
+const STEP = CELL_SIZE + GAP
+const DAY_LABEL_WIDTH = 28
+
 export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewProps) {
   const router = useRouter()
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [cellSize, setCellSize] = useState(11)
 
   const { weeks, monthSpans } = useMemo(() => {
     const now = new Date()
@@ -80,7 +83,6 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       weeks.push(currentWeek)
     }
 
-    // Build month spans: { month: "Jan", span: 4 } means "Jan" label takes 4 week columns
     const monthSpans: { month: string; span: number }[] = []
     let lastMonth = -1
     let currentMonthSpan = 0
@@ -89,7 +91,6 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       const week = weeks[w]
       if (!week || week.length === 0) continue
       const month = week[0].month
-
       if (lastMonth === -1) {
         lastMonth = month
         currentMonthSpan = 1
@@ -108,25 +109,6 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
     return { weeks, monthSpans }
   }, [completions, timezone])
 
-  useEffect(() => {
-    const updateSize = () => {
-      if (!containerRef.current) return
-      const containerWidth = containerRef.current.clientWidth - 40
-      const weekCount = weeks.length
-      if (weekCount === 0) return
-      const maxCellSize = Math.floor((containerWidth - (weekCount - 1) * 3) / weekCount)
-      setCellSize(Math.min(Math.max(maxCellSize, 6), 13))
-    }
-
-    updateSize()
-    const observer = new ResizeObserver(updateSize)
-    if (containerRef.current) observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [weeks.length])
-
-  const gap = 3
-  const dayLabelWidth = 28
-
   if (isLoading) {
     return (
       <div className="rounded-lg border border-muted bg-background p-4">
@@ -139,59 +121,61 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
     <div className="rounded-lg border border-muted bg-background p-4">
       <h3 className="mb-4 text-sm font-medium">Activity heatmap</h3>
 
-      <div ref={containerRef} className="flex flex-col items-center w-full">
-        {/* Month labels row — each label spans the correct number of week columns */}
-        <div className="flex w-fit" style={{ paddingLeft: `${dayLabelWidth + gap}px` }}>
-          {monthSpans.map((ms, i) => (
-            <div
-              key={`${ms.month}-${i}`}
-              className="text-xs text-muted-foreground"
-              style={{ width: `${ms.span * cellSize + (ms.span - 1) * gap}px` }}
-            >
-              {ms.month}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex mt-1">
-          {/* Day labels */}
-          <div className="flex flex-col" style={{ width: `${dayLabelWidth}px`, gap: `${gap}px` }}>
-            {DAY_LABELS.map((label, i) => (
+      <div className="overflow-x-auto">
+        <div className="mx-auto w-fit min-w-0">
+          {/* Month labels row */}
+          <div className="flex" style={{ paddingLeft: `${DAY_LABEL_WIDTH + GAP}px` }}>
+            {monthSpans.map((ms, i) => (
               <div
-                key={i}
-                className="flex items-center justify-end pr-2 text-[10px] text-muted-foreground"
-                style={{ height: `${cellSize}px` }}
+                key={`${ms.month}-${i}`}
+                className="text-xs text-muted-foreground"
+                style={{ width: `${ms.span * CELL_SIZE + (ms.span - 1) * GAP}px` }}
               >
-                {label}
+                {ms.month}
               </div>
             ))}
           </div>
 
-          {/* Grid */}
-          <div className="flex" style={{ gap: `${gap}px` }}>
-            {weeks.map((week, wi) => (
-              <div key={wi} className="flex flex-col" style={{ gap: `${gap}px` }}>
-                {week.map((day, di) => (
-                  <Tooltip key={`${wi}-${di}`} delayDuration={200}>
-                    <TooltipTrigger asChild>
-                      <button
-                        className={cn(
-                          "rounded-[2px] transition-colors hover:ring-1 hover:ring-foreground/20",
-                          HEATMAP_COLORS[day.level]
-                        )}
-                        style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
-                        onClick={() => router.push(`/day/${day.date}`)}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">
-                        {format(parseISO(day.date), "MMM d, yyyy")}: {day.count} completion{day.count !== 1 ? "s" : ""}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-            ))}
+          <div className="mt-1 flex">
+            {/* Day labels */}
+            <div className="flex flex-col" style={{ width: `${DAY_LABEL_WIDTH}px`, gap: `${GAP}px` }}>
+              {DAY_LABELS.map((label, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-end pr-2 text-[10px] text-muted-foreground"
+                  style={{ height: `${CELL_SIZE}px` }}
+                >
+                  {label}
+                </div>
+              ))}
+            </div>
+
+            {/* Grid */}
+            <div className="flex" style={{ gap: `${GAP}px` }}>
+              {weeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col" style={{ gap: `${GAP}px` }}>
+                  {week.map((day, di) => (
+                    <Tooltip key={`${wi}-${di}`} delayDuration={200}>
+                      <TooltipTrigger asChild>
+                        <button
+                          className={cn(
+                            "rounded-[2px] transition-colors hover:ring-1 hover:ring-foreground/20",
+                            HEATMAP_COLORS[day.level]
+                          )}
+                          style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px` }}
+                          onClick={() => router.push(`/day/${day.date}`)}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">
+                          {format(parseISO(day.date), "MMM d, yyyy")}: {day.count} completion{day.count !== 1 ? "s" : ""}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -200,7 +184,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       <div className="mt-4 flex items-center justify-end gap-1 text-xs text-muted-foreground">
         <span>Less</span>
         {HEATMAP_COLORS.map((color, i) => (
-          <div key={i} className={cn("rounded-[2px]", color)} style={{ width: `${cellSize}px`, height: `${cellSize}px` }} />
+          <div key={i} className={cn("rounded-[2px]", color)} style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px` }} />
         ))}
         <span>More</span>
       </div>
