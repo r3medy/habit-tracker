@@ -7,7 +7,7 @@ export function getWeeklyProgress(
   totalHabits: number
 ): { completed: number; total: number; percentage: number } {
   const completed = completions.filter((c) => c.completed).length
-  const total = completions.length || totalHabits * 7
+  const total = totalHabits * 7
   const percentage = total > 0 ? (completed / total) * 100 : 0
   return { completed, total, percentage }
 }

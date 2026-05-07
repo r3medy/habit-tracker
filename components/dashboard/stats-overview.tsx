@@ -99,14 +99,14 @@ export function StatsOverview({
       <StatCard
         label="Total completions"
         value={totalCompletions}
-        subtext="All time"
+        subtext="Past 14 days"
         icon={TrendingUp}
         iconColor="emerald"
       />
 
       <StatCard
         label="Daily avg."
-        value={`${Math.round(dailyAverage)}%`}
+        value={`${dailyAverage.toFixed(1)}/day`}
         subtext="This week"
         icon={BarChart3}
         iconColor="sky"

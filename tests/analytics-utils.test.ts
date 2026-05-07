@@ -19,8 +19,8 @@ describe("analytics-utils", () => {
       ]
       const result = getWeeklyProgress(completions, 3)
       expect(result.completed).toBe(2)
-      expect(result.total).toBe(3)
-      expect(result.percentage).toBeCloseTo(66.67, 1)
+      expect(result.total).toBe(21)
+      expect(result.percentage).toBeCloseTo(9.52, 1)
     })
 
     it("handles empty completions", () => {
