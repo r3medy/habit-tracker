@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 import { useGoals } from "@/hooks/use-goals"
 import { toast } from "sonner"
 import { getTodayInTimeZone } from "@/lib/date-utils"
-import { Plus } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 
 interface GoalsSectionProps {
   goals: (GoalRow & { milestones?: GoalMilestoneRow[] })[]
@@ -156,7 +156,16 @@ function AddGoalDialog({
 
 export function GoalsSection({ goals, habits, streaks, isLoading }: GoalsSectionProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false)
-  const { createGoal } = useGoals()
+  const { createGoal, deleteGoal } = useGoals()
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteGoal(id)
+      toast.success("Goal deleted")
+    } catch {
+      toast.error("Failed to delete goal")
+    }
+  }
 
   const habitMap = useMemo(() => {
     const map = new Map<string, HabitRow>()
@@ -243,35 +252,45 @@ export function GoalsSection({ goals, habits, streaks, isLoading }: GoalsSection
                 <div className="flex-1">
                   <p className="text-sm font-medium">{habit.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {goal.target_type === "streak" ? "Streak goal" : "Count goal"} · {goal.target_value} target
+                    {goal.target_type === "streak" ? "Streak goal" : "Count goal"} · Target: {goal.target_value}
                   </p>
                 </div>
-                <Badge variant="outline" className="text-xs">
-                  {Math.round(progress)}%
-                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => handleDelete(goal.id)}
+                >
+                  <Trash2 className="size-3" />
+                </Button>
               </div>
 
               <Progress value={progress} className="mt-2 h-1.5" />
 
-              <div className="mt-2 flex gap-1">
-                {[25, 50, 75].map((threshold) => {
-                  const reached = (goal.milestones || []).some(
-                    (m) => m.threshold_pct === threshold && m.reached
-                  )
-                  return (
-                    <span
-                      key={threshold}
-                      className={cn(
-                        "rounded px-1.5 py-0.5 text-xs",
-                        reached
-                          ? "bg-primary/10 text-primary"
-                          : "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      {threshold}%
-                    </span>
-                  )
-                })}
+              <div className="mt-1.5 flex items-center justify-between">
+                <div className="flex gap-1">
+                  {[25, 50, 75].map((threshold) => {
+                    const reached = (goal.milestones || []).some(
+                      (m) => m.threshold_pct === threshold && m.reached
+                    )
+                    return (
+                      <span
+                        key={threshold}
+                        className={cn(
+                          "rounded px-1.5 py-0.5 text-xs",
+                          reached
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {threshold}%
+                      </span>
+                    )
+                  })}
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {current} / {goal.target_value} ({Math.round(progress)}%)
+                </span>
               </div>
             </div>
           )
