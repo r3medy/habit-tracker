@@ -2,17 +2,17 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { verifyPassword } from "@/app/actions"
+import { useQueryClient } from "@tanstack/react-query"
+import { verifyPassword, setVerified } from "@/app/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
 import { Lock, AlertTriangle } from "lucide-react"
 
-const VERIFIED_KEY = "habit-tracker-verified"
-
 export default function GatePage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [isPending, startTransition] = useTransition()
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +25,8 @@ export default function GatePage() {
       const result = await verifyPassword(password)
 
       if (result.success) {
-        localStorage.setItem(VERIFIED_KEY, "true")
+        await setVerified()
+        await queryClient.invalidateQueries({ queryKey: ["user_profile"] })
         router.push("/tracker")
       } else {
         setError(result.error || "Verification failed")
