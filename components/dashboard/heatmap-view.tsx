@@ -180,7 +180,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
                           HEATMAP_COLORS[day.level]
                         )}
                         style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
-                        onClick={() => router.push(`/tracker?date=${day.date}`)}
+                        onClick={() => router.push(`/day/${day.date}`)}
                       />
                     </TooltipTrigger>
                     <TooltipContent>
