@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/chart"
 import { HABIT_COLORS } from "@/lib/constants"
 import type { CompletionRow, HabitRow } from "@/lib/supabase/types"
+import { cn } from "@/lib/utils"
 
 interface CompletionPieChartProps {
   completions: CompletionRow[]
@@ -67,28 +68,42 @@ export function CompletionPieChart({ completions, habits, isLoading }: Completio
       <h3 className="mb-2 text-sm font-medium">Completions by habit</h3>
       <p className="mb-4 text-xs text-muted-foreground">Last 30 days</p>
 
-      <ChartContainer config={config} className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={80}
-              paddingAngle={2}
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
-              ))}
-            </Pie>
-            <ChartTooltip content={<ChartTooltipContent />} />
-          </PieChart>
-        </ResponsiveContainer>
-      </ChartContainer>
+      <div className="flex items-center gap-4">
+        <ChartContainer config={config} className="h-56 flex-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={70}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <ChartTooltip content={<ChartTooltipContent />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartContainer>
 
-      <div className="mt-2 text-center text-xs text-muted-foreground">
+        <div className="flex flex-col gap-2">
+          {data.map((entry) => (
+            <div key={entry.name} className="flex items-center gap-2">
+              <div
+                className="size-3 rounded-sm"
+                style={{ backgroundColor: entry.fill }}
+              />
+              <span className="text-xs text-muted-foreground">{entry.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-3 text-center text-xs text-muted-foreground">
         {total} total completions
       </div>
     </div>

@@ -126,7 +126,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
     <div className="rounded-lg border border-muted bg-background p-4">
       <h3 className="mb-4 text-sm font-medium">Activity heatmap</h3>
 
-      <div ref={containerRef} className="w-full">
+      <div ref={containerRef} className="flex w-full justify-center">
         {/* Month labels row */}
         <div className="relative ml-8 mb-1 h-4">
           {monthPositions.map((label, i) => (

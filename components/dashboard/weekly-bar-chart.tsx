@@ -25,6 +25,12 @@ function getHabitColor(colorValue: string) {
 }
 
 export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChartProps) {
+  const habitMap = useMemo(() => {
+    const map = new Map<string, HabitRow>()
+    for (const h of habits) map.set(h.id, h)
+    return map
+  }, [habits])
+
   const data = useMemo(() => {
     const now = new Date()
     const fourWeeksAgo = subWeeks(now, 4)
@@ -40,14 +46,17 @@ export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChar
 
       result[weekLabel] = {}
       for (const habit of habits) {
-        result[weekLabel][habit.id] = 0
+        result[weekLabel][habit.name] = 0
       }
 
       for (const c of completions) {
         if (!c.completed) continue
         const d = parseISO(c.date)
         if (d >= weekStart && d <= weekEnd) {
-          result[weekLabel][c.habit_id] = (result[weekLabel][c.habit_id] || 0) + 1
+          const habit = habitMap.get(c.habit_id)
+          if (habit) {
+            result[weekLabel][habit.name] = (result[weekLabel][habit.name] || 0) + 1
+          }
         }
       }
     }
@@ -56,15 +65,7 @@ export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChar
       week,
       ...counts,
     }))
-  }, [completions, habits])
-
-  const config = useMemo(() => {
-    const c: Record<string, { label: string; color: string }> = {}
-    for (const habit of habits) {
-      c[habit.id] = { label: habit.name, color: getHabitColor(habit.color) }
-    }
-    return c
-  }, [habits])
+  }, [completions, habits, habitMap])
 
   if (isLoading) {
     return (
@@ -96,7 +97,7 @@ export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChar
             {habits.map((habit) => (
               <Bar
                 key={habit.id}
-                dataKey={habit.id}
+                dataKey={habit.name}
                 fill={getHabitColor(habit.color)}
                 radius={[4, 4, 0, 0]}
               />
