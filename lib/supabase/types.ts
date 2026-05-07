@@ -82,6 +82,7 @@ export type CompletionInsert = {
 export type SubtaskRow = {
   id: string
   habit_id: string
+  todo_id: string | null
   name: string
   sort_order: number
   created_at: string
@@ -89,7 +90,8 @@ export type SubtaskRow = {
 
 export type SubtaskInsert = {
   id?: string
-  habit_id: string
+  habit_id?: string
+  todo_id?: string | null
   name: string
   sort_order?: number
   created_at?: string
@@ -239,6 +241,7 @@ export interface Database {
         Update: {
           id?: string
           habit_id?: string
+          todo_id?: string | null
           name?: string
           sort_order?: number
           created_at?: string

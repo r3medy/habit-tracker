@@ -11,6 +11,8 @@ import type {
   JournalEntryInsert,
   UserProfileInsert,
   UserProfileUpdate,
+  TodoInsert,
+  TodoUpdate,
   HabitRow,
   CompletionRow,
   SubtaskRow,
@@ -19,6 +21,7 @@ import type {
   GoalMilestoneRow,
   JournalEntryRow,
   UserProfileRow,
+  TodoRow,
 } from "./types"
 
 type InsertMap = {
@@ -30,6 +33,7 @@ type InsertMap = {
   goal_milestones: GoalMilestoneInsert
   journal_entries: JournalEntryInsert
   user_profile: UserProfileInsert
+  todos: TodoInsert
 }
 
 type RowMap = {
@@ -41,12 +45,14 @@ type RowMap = {
   goal_milestones: GoalMilestoneRow
   journal_entries: JournalEntryRow
   user_profile: UserProfileRow
+  todos: TodoRow
 }
 
 type UpdateMap = {
   habits: HabitUpdate
   user_profile: UserProfileUpdate
   goals: GoalUpdate
+  todos: TodoUpdate
 }
 
 export async function insertTyped<T extends keyof InsertMap>(

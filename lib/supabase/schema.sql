@@ -7,6 +7,7 @@ create table if not exists user_profile (
   name text not null,
   timezone text not null default 'UTC',
   has_onboarded boolean not null default false,
+  verified boolean NOT NULL default false,
   created_at timestamptz not null default now()
 );
 
@@ -32,10 +33,11 @@ create table if not exists completions (
   unique(habit_id, date)
 );
 
--- Subtasks (single level only)
+-- Subtasks (single level only, shared between habits and todos)
 create table if not exists subtasks (
   id uuid primary key default gen_random_uuid(),
   habit_id uuid references habits(id) on delete cascade,
+  todo_id uuid references todos(id) on delete cascade,
   name text not null,
   sort_order int not null default 0,
   created_at timestamptz not null default now()
@@ -93,6 +95,17 @@ create table if not exists todos (
   created_at timestamptz not null default now()
 );
 
+-- Todos
+create table if not exists todos (
+  id uuid primary key default gen_random_uuid(),
+  text text not null,
+  date date not null,
+  completed boolean not null default false,
+  carry_over boolean not null default true,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
 -- Indexes for performance
 create index if not exists idx_completions_habit_date on completions(habit_id, date);
 create index if not exists idx_completions_date on completions(date);
@@ -100,4 +113,5 @@ create index if not exists idx_subtask_completions_subtask_date on subtask_compl
 create index if not exists idx_subtask_completions_date on subtask_completions(date);
 create index if not exists idx_goals_habit on goals(habit_id);
 create index if not exists idx_journal_user_date on journal_entries(user_id, date);
+create index if not exists idx_todos_date on todos(date);
 create index if not exists idx_todos_date on todos(date);

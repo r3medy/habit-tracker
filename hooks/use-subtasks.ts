@@ -6,33 +6,45 @@ import { insertTyped, upsertTyped } from "@/lib/supabase/typed"
 import type { SubtaskRow, SubtaskInsert, SubtaskCompletionRow, SubtaskCompletionInsert } from "@/lib/supabase/types"
 import { getTodayInTimeZone } from "@/lib/date-utils"
 
-export function useSubtasks(habitId: string, timezone?: string) {
+export function useSubtasks(habitId: string, timezone?: string, todoId?: string) {
   const queryClient = useQueryClient()
   const today = timezone ? getTodayInTimeZone(timezone) : undefined
 
+  const effectiveId = todoId || habitId
+  const subtaskQueryKey = todoId ? ["subtasks", "todo", todoId] : ["subtasks", habitId]
+
   const { data: subtasks, isLoading, error } = useQuery({
-    queryKey: ["subtasks", habitId],
+    queryKey: subtaskQueryKey,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("subtasks")
-        .select("*")
-        .eq("habit_id", habitId)
-        .order("sort_order", { ascending: true })
+      let query = supabase.from("subtasks").select("*")
+      if (todoId) {
+        query = query.eq("todo_id", todoId)
+      } else {
+        query = query.eq("habit_id", habitId)
+      }
+      const { data, error } = await query.order("sort_order", { ascending: true })
       if (error) throw error
       return (data || []) as SubtaskRow[]
     },
     staleTime: 1000 * 60 * 5,
-    enabled: !!habitId,
+    enabled: !!effectiveId,
   })
 
+  const completionsQueryKey = todoId
+    ? ["subtask_completions", "todo", todoId, today]
+    : ["subtask_completions", habitId, today]
+
   const { data: completions } = useQuery({
-    queryKey: ["subtask_completions", habitId, today],
+    queryKey: completionsQueryKey,
     queryFn: async () => {
       if (!today) return []
-      const { data: subs } = await supabase
-        .from("subtasks")
-        .select("id")
-        .eq("habit_id", habitId)
+      let subsQuery = supabase.from("subtasks").select("id")
+      if (todoId) {
+        subsQuery = subsQuery.eq("todo_id", todoId)
+      } else {
+        subsQuery = subsQuery.eq("habit_id", habitId)
+      }
+      const { data: subs } = await subsQuery
 
       if (!subs || subs.length === 0) return []
 
@@ -46,18 +58,20 @@ export function useSubtasks(habitId: string, timezone?: string) {
       if (error) throw error
       return (data || []) as SubtaskCompletionRow[]
     },
-    enabled: !!habitId && !!today,
+    enabled: !!effectiveId && !!today,
   })
 
   const createMutation = useMutation({
-    mutationFn: async ({ habitId, name, sort_order = 0 }: { habitId: string; name: string; sort_order?: number }) => {
-      const payload: SubtaskInsert = { habit_id: habitId, name, sort_order }
+    mutationFn: async ({ name, sort_order = 0 }: { name: string; sort_order?: number }) => {
+      const payload: SubtaskInsert = todoId
+        ? { todo_id: todoId, name, sort_order }
+        : { habit_id: habitId, name, sort_order }
       const { data, error } = await insertTyped("subtasks", [payload])
       if (error) throw error
       return data as SubtaskRow
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subtasks", habitId] })
+      queryClient.invalidateQueries({ queryKey: subtaskQueryKey })
     },
   })
 
@@ -67,7 +81,7 @@ export function useSubtasks(habitId: string, timezone?: string) {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subtasks", habitId] })
+      queryClient.invalidateQueries({ queryKey: subtaskQueryKey })
     },
   })
 
@@ -83,7 +97,7 @@ export function useSubtasks(habitId: string, timezone?: string) {
       return data as SubtaskCompletionRow
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["subtask_completions", habitId, today] })
+      queryClient.invalidateQueries({ queryKey: completionsQueryKey })
     },
   })
 
