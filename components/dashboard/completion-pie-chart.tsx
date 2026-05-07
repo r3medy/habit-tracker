@@ -68,8 +68,8 @@ export function CompletionPieChart({ completions, habits, isLoading }: Completio
       <h3 className="mb-2 text-sm font-medium">Completions by habit</h3>
       <p className="mb-4 text-xs text-muted-foreground">Last 30 days</p>
 
-      <div className="flex items-center gap-6 pr-2">
-        <ChartContainer config={config} className="h-56 flex-1">
+      <div className="flex items-center justify-center gap-8">
+        <ChartContainer config={config} className="h-52 w-52">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
