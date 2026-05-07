@@ -4,7 +4,6 @@ import { useMemo } from "react"
 import { useHabits } from "@/hooks/use-habits"
 import { useCompletions } from "@/hooks/use-completions"
 import { useStreaks } from "@/hooks/use-streaks"
-import { useGoals } from "@/hooks/use-goals"
 import { useUserProfile } from "@/hooks/use-user-profile"
 import { getTodayInTimeZone, getLastNDays } from "@/lib/date-utils"
 import {
@@ -17,7 +16,6 @@ import { StatsOverview } from "@/components/dashboard/stats-overview"
 import { HeatmapView } from "@/components/dashboard/heatmap-view"
 import { CompletionPieChart } from "@/components/dashboard/completion-pie-chart"
 import { WeeklyBarChart } from "@/components/dashboard/weekly-bar-chart"
-import { GoalsSection } from "@/components/dashboard/goals-section"
 import { JournalSection } from "@/components/dashboard/journal-section"
 
 export default function DashboardPage() {
@@ -25,7 +23,6 @@ export default function DashboardPage() {
   const timezone = profile?.timezone || "UTC"
 
   const { habits, isLoading: habitsLoading } = useHabits()
-  const { goals, isLoading: goalsLoading } = useGoals()
 
   // Fetch last 14 days for charts and stats
   const last14Days = useMemo(() => getLastNDays(14, timezone), [timezone])
@@ -83,7 +80,7 @@ export default function DashboardPage() {
   if (habit3) streaks[habit3.id] = s3.longestStreak
   if (habit4) streaks[habit4.id] = s4.longestStreak
 
-  const isLoading = habitsLoading || goalsLoading || chartLoading
+  const isLoading = habitsLoading || chartLoading
 
   // Stats calculations
   const weeklyProgress = useMemo(
@@ -129,13 +126,6 @@ export default function DashboardPage() {
           isLoading={chartLoading}
         />
       </div>
-
-      <GoalsSection
-        goals={goals || []}
-        habits={habits || []}
-        streaks={streaks}
-        isLoading={goalsLoading}
-      />
 
       <JournalSection />
     </div>

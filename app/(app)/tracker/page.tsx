@@ -19,6 +19,9 @@ import type { TodoRow } from "@/lib/supabase/types"
 import { Button } from "@/components/ui/button"
 import { ListTodo } from "lucide-react"
 import Link from "next/link"
+import { useGoals } from "@/hooks/use-goals"
+import { useStreaks } from "@/hooks/use-streaks"
+import { GoalsSection } from "@/components/dashboard/goals-section"
 
 export default function TrackerPage() {
   const [view, setView] = useState<"week" | "day">("week")
@@ -31,6 +34,7 @@ export default function TrackerPage() {
   const [selectedDate, setSelectedDate] = useState(today)
 
   const { habits, isLoading: habitsLoading, createHabit, isCreating } = useHabits()
+  const { goals, isLoading: goalsLoading } = useGoals()
 
   const { start: weekStart, end: weekEnd } = useMemo(
     () => getWeekRange(selectedDate, timezone),
@@ -67,6 +71,24 @@ export default function TrackerPage() {
   const { completions: dailyCompletions, isLoading: dailyLoading, toggleCompletion, isToggling } = useCompletions(selectedDate, timezone)
 
   const isLoading = habitsLoading || weeklyLoading || dailyLoading
+
+  // Streaks for goals
+  const streaks: Record<string, number> = {}
+  const habit0 = habits?.[0]
+  const habit1 = habits?.[1]
+  const habit2 = habits?.[2]
+  const habit3 = habits?.[3]
+  const habit4 = habits?.[4]
+  const s0 = useStreaks(habit0?.id || "", timezone)
+  const s1 = useStreaks(habit1?.id || "", timezone)
+  const s2 = useStreaks(habit2?.id || "", timezone)
+  const s3 = useStreaks(habit3?.id || "", timezone)
+  const s4 = useStreaks(habit4?.id || "", timezone)
+  if (habit0) streaks[habit0.id] = s0.longestStreak
+  if (habit1) streaks[habit1.id] = s1.longestStreak
+  if (habit2) streaks[habit2.id] = s2.longestStreak
+  if (habit3) streaks[habit3.id] = s3.longestStreak
+  if (habit4) streaks[habit4.id] = s4.longestStreak
 
   // Today's todo count
   const { data: todayTodos } = useQuery({
@@ -188,6 +210,14 @@ export default function TrackerPage() {
           </div>
         </div>
       )}
+
+      {/* Goals */}
+      <GoalsSection
+        goals={goals || []}
+        habits={habits || []}
+        streaks={streaks}
+        isLoading={goalsLoading}
+      />
 
       <AddHabitDialog
         open={addDialogOpen}
