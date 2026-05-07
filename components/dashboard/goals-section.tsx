@@ -1,11 +1,25 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
+import { Label } from "@/components/ui/label"
 import { HABIT_ICONS, HABIT_COLORS } from "@/lib/constants"
-import type { GoalRow, GoalMilestoneRow, HabitRow } from "@/lib/supabase/types"
+import type { GoalRow, GoalMilestoneRow, HabitRow, GoalInsert } from "@/lib/supabase/types"
 import { cn } from "@/lib/utils"
+import { useGoals } from "@/hooks/use-goals"
+import { toast } from "sonner"
+import { getTodayInTimeZone } from "@/lib/date-utils"
+import { Plus } from "lucide-react"
 
 interface GoalsSectionProps {
   goals: (GoalRow & { milestones?: GoalMilestoneRow[] })[]
@@ -22,7 +36,128 @@ function getHabitIcon(iconValue: string) {
   return HABIT_ICONS.find((i) => i.value === iconValue)?.component || HABIT_ICONS[0].component
 }
 
+function AddGoalDialog({
+  open,
+  onOpenChange,
+  habits,
+  onAdd,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  habits: HabitRow[]
+  onAdd: (goal: GoalInsert) => void
+}) {
+  const [habitId, setHabitId] = useState(habits[0]?.id || "")
+  const [targetType, setTargetType] = useState<"streak" | "count">("streak")
+  const [targetValue, setTargetValue] = useState("")
+  const [error, setError] = useState("")
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const value = parseInt(targetValue, 10)
+    if (!habitId) {
+      setError("Please select a habit")
+      return
+    }
+    if (!value || value < 1) {
+      setError("Target must be at least 1")
+      return
+    }
+
+    const today = getTodayInTimeZone("UTC")
+    onAdd({
+      habit_id: habitId,
+      target_type: targetType,
+      target_value: value,
+      start_date: today,
+      end_date: null,
+      completed: false,
+      completed_at: null,
+    })
+
+    setTargetValue("")
+    setError("")
+    onOpenChange(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add new goal</DialogTitle>
+          <DialogDescription>Set a target to stay motivated.</DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Habit</Label>
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              value={habitId}
+              onChange={(e) => setHabitId(e.target.value)}
+            >
+              {habits.map((h) => (
+                <option key={h.id} value={h.id}>{h.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={targetType === "streak" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTargetType("streak")}
+              >
+                Streak
+              </Button>
+              <Button
+                type="button"
+                variant={targetType === "count" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTargetType("count")}
+              >
+                Count
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Target value</Label>
+            <InputGroup>
+              <InputGroupInput
+                type="number"
+                min="1"
+                placeholder="e.g. 30"
+                value={targetValue}
+                onChange={(e) => {
+                  setTargetValue(e.target.value)
+                  if (error) setError("")
+                }}
+              />
+            </InputGroup>
+          </div>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Add goal</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function GoalsSection({ goals, habits, streaks, isLoading }: GoalsSectionProps) {
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const { createGoal } = useGoals()
+
   const habitMap = useMemo(() => {
     const map = new Map<string, HabitRow>()
     for (const h of habits) map.set(h.id, h)
@@ -45,13 +180,37 @@ export function GoalsSection({ goals, habits, streaks, isLoading }: GoalsSection
       <div className="rounded-lg border border-muted bg-background p-8 text-center">
         <p className="text-sm text-muted-foreground">No active goals</p>
         <p className="mt-1 text-xs text-muted-foreground">Set a goal to start tracking progress</p>
+        <Button size="sm" className="mt-4" onClick={() => setAddDialogOpen(true)}>
+          <Plus className="mr-1 size-3" />
+          Add goal
+        </Button>
+        <AddGoalDialog
+          open={addDialogOpen}
+          onOpenChange={setAddDialogOpen}
+          habits={habits}
+          onAdd={async (goal) => {
+            try {
+              await createGoal(goal)
+              toast.success("Goal added")
+            } catch {
+              toast.error("Failed to add goal")
+            }
+          }}
+        />
       </div>
     )
   }
 
   return (
-    <div className="rounded-lg border border-muted bg-background p-4">
-      <h3 className="mb-4 text-sm font-medium">Goals</h3>
+    <>
+      <div className="rounded-lg border border-muted bg-background p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-sm font-medium">Goals</h3>
+        <Button size="xs" variant="outline" onClick={() => setAddDialogOpen(true)}>
+          <Plus className="mr-1 size-3" />
+          Add goal
+        </Button>
+      </div>
 
       <div className="space-y-3">
         {activeGoals.map((goal) => {
@@ -138,5 +297,20 @@ export function GoalsSection({ goals, habits, streaks, isLoading }: GoalsSection
         )}
       </div>
     </div>
+
+    <AddGoalDialog
+      open={addDialogOpen}
+      onOpenChange={setAddDialogOpen}
+      habits={habits}
+      onAdd={async (goal) => {
+        try {
+          await createGoal(goal)
+          toast.success("Goal added")
+        } catch {
+          toast.error("Failed to add goal")
+        }
+      }}
+    />
+    </>
   )
 }

@@ -12,7 +12,7 @@ import {
 } from "recharts"
 import { HABIT_COLORS } from "@/lib/constants"
 import type { CompletionRow, HabitRow } from "@/lib/supabase/types"
-import { parseISO, subWeeks, eachWeekOfInterval } from "date-fns"
+import { parseISO, subWeeks, eachWeekOfInterval, format } from "date-fns"
 
 interface WeeklyBarChartProps {
   completions: CompletionRow[]
@@ -42,7 +42,7 @@ export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChar
       const weekStart = weeks[i]
       const weekEnd = new Date(weekStart)
       weekEnd.setDate(weekEnd.getDate() + 6)
-      const weekLabel = `W${i + 1}`
+      const weekLabel = `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d")}`
 
       result[weekLabel] = {}
       for (const habit of habits) {

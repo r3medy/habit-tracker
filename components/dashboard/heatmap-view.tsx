@@ -128,23 +128,28 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
 
       <div ref={containerRef} className="flex w-full justify-center">
         {/* Month labels row */}
-        <div className="relative ml-8 mb-1 h-4">
-          {monthPositions.map((label, i) => (
-            <span
-              key={i}
-              className="absolute text-xs text-muted-foreground"
-              style={{ left: `${label.weekIndex * step}px` }}
-            >
-              {label.month}
-            </span>
-          ))}
+        <div className="relative ml-8 mb-2 h-4 w-full">
+          {monthPositions.map((label, i) => {
+            const prevLabel = i > 0 ? monthPositions[i - 1] : null
+            const minLeft = prevLabel ? (prevLabel.weekIndex * step) + 28 : 0
+            const left = Math.max(label.weekIndex * step, minLeft)
+            return (
+              <span
+                key={i}
+                className="absolute text-xs text-muted-foreground"
+                style={{ left: `${left}px` }}
+              >
+                {label.month}
+              </span>
+            )
+          })}
         </div>
 
         <div className="flex">
           {/* Day labels */}
-          <div className="flex flex-col pr-2 pt-0.5" style={{ gap: `${gap}px` }}>
+          <div className="flex flex-col pr-2 pt-1" style={{ gap: `${gap}px` }}>
             {DAY_LABELS.map((label, i) => (
-              <div key={i} className="flex items-center justify-end text-[10px] text-muted-foreground" style={{ height: `${cellSize}px` }}>
+              <div key={i} className="flex items-center justify-end text-[10px] text-muted-foreground" style={{ height: `${cellSize}px`, width: "24px" }}>
                 {label}
               </div>
             ))}
