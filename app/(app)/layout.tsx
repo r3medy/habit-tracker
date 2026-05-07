@@ -2,6 +2,8 @@
 
 import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { Sidebar } from "@/components/shared/sidebar"
 
 const VERIFIED_KEY = "habit-tracker-verified"
 const ONBOARDED_KEY = "habit-tracker-onboarded"
@@ -27,5 +29,10 @@ export default function AppLayout({
     }
   }, [pathname, router])
 
-  return <>{children}</>
+  return (
+    <TooltipProvider>
+      <Sidebar />
+      <main className="ml-14 min-h-svh">{children}</main>
+    </TooltipProvider>
+  )
 }
