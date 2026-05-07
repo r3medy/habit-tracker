@@ -41,7 +41,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
   const containerRef = useRef<HTMLDivElement>(null)
   const [cellSize, setCellSize] = useState(11)
 
-  const { weeks, monthPositions } = useMemo(() => {
+  const { weeks, monthSpans } = useMemo(() => {
     const now = new Date()
     const zonedNow = toZonedTime(now, timezone)
     const startDate = subDays(zonedNow, 364)
@@ -80,19 +80,32 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       weeks.push(currentWeek)
     }
 
-    const monthPositions: { month: string; weekIndex: number }[] = []
+    // Build month spans: { month: "Jan", span: 4 } means "Jan" label takes 4 week columns
+    const monthSpans: { month: string; span: number }[] = []
     let lastMonth = -1
+    let currentMonthSpan = 0
+
     for (let w = 0; w < weeks.length; w++) {
       const week = weeks[w]
       if (!week || week.length === 0) continue
       const month = week[0].month
-      if (month !== lastMonth) {
-        monthPositions.push({ month: MONTH_LABELS[month], weekIndex: w })
+
+      if (lastMonth === -1) {
         lastMonth = month
+        currentMonthSpan = 1
+      } else if (month === lastMonth) {
+        currentMonthSpan++
+      } else {
+        monthSpans.push({ month: MONTH_LABELS[lastMonth], span: currentMonthSpan })
+        lastMonth = month
+        currentMonthSpan = 1
       }
     }
+    if (currentMonthSpan > 0) {
+      monthSpans.push({ month: MONTH_LABELS[lastMonth], span: currentMonthSpan })
+    }
 
-    return { weeks, monthPositions }
+    return { weeks, monthSpans }
   }, [completions, timezone])
 
   useEffect(() => {
@@ -112,7 +125,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
   }, [weeks.length])
 
   const gap = 3
-  const step = cellSize + gap
+  const dayLabelWidth = 28
 
   if (isLoading) {
     return (
@@ -126,30 +139,29 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
     <div className="rounded-lg border border-muted bg-background p-4">
       <h3 className="mb-4 text-sm font-medium">Activity heatmap</h3>
 
-      <div ref={containerRef} className="flex w-full justify-center">
-        {/* Month labels row */}
-        <div className="relative ml-8 mb-2 h-4 w-full">
-          {monthPositions.map((label, i) => {
-            const prevLabel = i > 0 ? monthPositions[i - 1] : null
-            const minLeft = prevLabel ? (prevLabel.weekIndex * step) + 28 : 0
-            const left = Math.max(label.weekIndex * step, minLeft)
-            return (
-              <span
-                key={i}
-                className="absolute text-xs text-muted-foreground"
-                style={{ left: `${left}px` }}
-              >
-                {label.month}
-              </span>
-            )
-          })}
+      <div ref={containerRef} className="flex flex-col items-center w-full">
+        {/* Month labels row — each label spans the correct number of week columns */}
+        <div className="flex w-fit" style={{ paddingLeft: `${dayLabelWidth + gap}px` }}>
+          {monthSpans.map((ms) => (
+            <div
+              key={ms.month}
+              className="text-xs text-muted-foreground"
+              style={{ width: `${ms.span * cellSize + (ms.span - 1) * gap}px` }}
+            >
+              {ms.month}
+            </div>
+          ))}
         </div>
 
-        <div className="flex">
+        <div className="flex mt-1">
           {/* Day labels */}
-          <div className="flex flex-col pr-2 pt-1" style={{ gap: `${gap}px` }}>
+          <div className="flex flex-col" style={{ width: `${dayLabelWidth}px`, gap: `${gap}px` }}>
             {DAY_LABELS.map((label, i) => (
-              <div key={i} className="flex items-center justify-end text-[10px] text-muted-foreground" style={{ height: `${cellSize}px`, width: "24px" }}>
+              <div
+                key={i}
+                className="flex items-center justify-end pr-2 text-[10px] text-muted-foreground"
+                style={{ height: `${cellSize}px` }}
+              >
                 {label}
               </div>
             ))}
