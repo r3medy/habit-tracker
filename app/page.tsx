@@ -26,7 +26,11 @@ export default function GatePage() {
 
       if (result.success) {
         await setVerified()
-        await queryClient.invalidateQueries({ queryKey: ["user_profile"] })
+        queryClient.setQueryData(["user_profile"], (old: any) => {
+          if (!old) return old
+          return { ...old, verified: true }
+        })
+        queryClient.invalidateQueries({ queryKey: ["user_profile"] })
         router.push("/tracker")
       } else {
         setError(result.error || "Verification failed")
