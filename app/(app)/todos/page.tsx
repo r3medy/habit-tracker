@@ -118,6 +118,7 @@ export default function TodoPage() {
             <Button variant="ghost" size="icon-xs" className="size-6" onClick={() => handleNavigate("prev")}>
               <ChevronLeft className="size-3" />
             </Button>
+            <span className="text-sm font-medium">{formatDayFull(selectedDate, timezone)}</span>
             <Button variant="ghost" size="icon-xs" className="size-6" onClick={() => handleNavigate("next")}>
               <ChevronRight className="size-3" />
             </Button>

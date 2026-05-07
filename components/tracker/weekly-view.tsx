@@ -75,7 +75,7 @@ export function WeeklyView({
   })
 
   return (
-    <div className="rounded-lg border border-muted">
+    <div className="overflow-x-auto rounded-lg border border-muted">
       {/* Header row */}
       <div className="flex items-center gap-3 border-b border-muted px-4 py-2 bg-muted/30">
         <div className="w-48 shrink-0 text-xs font-medium text-muted-foreground">Habit</div>
