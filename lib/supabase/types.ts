@@ -179,6 +179,36 @@ export type JournalEntryInsert = {
   updated_at?: string
 }
 
+export type TodoRow = {
+  id: string
+  text: string
+  date: string
+  completed: boolean
+  carry_over: boolean
+  sort_order: number
+  created_at: string
+}
+
+export type TodoInsert = {
+  id?: string
+  text: string
+  date: string
+  completed?: boolean
+  carry_over?: boolean
+  sort_order?: number
+  created_at?: string
+}
+
+export type TodoUpdate = {
+  id?: string
+  text?: string
+  date?: string
+  completed?: boolean
+  carry_over?: boolean
+  sort_order?: number
+  created_at?: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -260,6 +290,19 @@ export interface Database {
           content?: string | null
           created_at?: string
           updated_at?: string
+        }
+      }
+      todos: {
+        Row: TodoRow
+        Insert: TodoInsert
+        Update: {
+          id?: string
+          text?: string
+          date?: string
+          completed?: boolean
+          carry_over?: boolean
+          sort_order?: number
+          created_at?: string
         }
       }
     }
