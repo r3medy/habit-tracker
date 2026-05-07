@@ -58,7 +58,7 @@ export default function TrackerPage() {
     day3.isLoading || day4.isLoading || day5.isLoading || day6.isLoading
 
   // Daily: fetch single day
-  const { completions: dailyCompletions, isLoading: dailyLoading } = useCompletions(selectedDate, timezone)
+  const { completions: dailyCompletions, isLoading: dailyLoading, toggleCompletion, isToggling } = useCompletions(selectedDate, timezone)
 
   const isLoading = habitsLoading || weeklyLoading || dailyLoading
 
@@ -75,6 +75,21 @@ export default function TrackerPage() {
       setSelectedDate(newDate.toISOString().split("T")[0])
     },
     [selectedDate, view, today]
+  )
+
+  const handleToggleWeekly = useCallback(
+    (habitId: string, date: string) => {
+      const current = weeklyCompletions[date]?.find((c: { habit_id: string; completed: boolean }) => c.habit_id === habitId)
+      toggleCompletion({ habitId, date, completed: !current?.completed })
+    },
+    [weeklyCompletions, toggleCompletion]
+  )
+
+  const handleToggleDaily = useCallback(
+    (habitId: string, completed: boolean) => {
+      toggleCompletion({ habitId, date: selectedDate, completed })
+    },
+    [selectedDate, toggleCompletion]
   )
 
   const handleAddHabit = useCallback(
@@ -114,8 +129,8 @@ export default function TrackerPage() {
           habits={habits || []}
           weekDays={weekDays}
           completions={weeklyCompletions}
-          onToggle={() => {}}
-          isToggling={false}
+          onToggle={handleToggleWeekly}
+          isToggling={isToggling}
           isLoading={isLoading}
         />
       ) : (
@@ -126,10 +141,10 @@ export default function TrackerPage() {
           streaks={{}}
           subtasks={{}}
           subtaskCompletions={{}}
-          onToggle={() => {}}
+          onToggle={handleToggleDaily}
           onToggleSubtask={() => {}}
           onToggleAllSubtasks={() => {}}
-          isToggling={false}
+          isToggling={isToggling}
           isLoading={isLoading}
         />
       )}
