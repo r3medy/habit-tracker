@@ -3,7 +3,26 @@
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase/client"
 import { getTodayInTimeZone } from "@/lib/date-utils"
-import { parseISO } from "date-fns"
+import { parseISO, differenceInDays, format } from "date-fns"
+
+function calculateLongestStreak(dates: Date[]): number {
+  if (dates.length === 0) return 0
+
+  let longest = 1
+  let current = 1
+
+  for (let i = 1; i < dates.length; i++) {
+    const diff = differenceInDays(dates[i - 1], dates[i])
+    if (diff === 1) {
+      current++
+      if (current > longest) longest = current
+    } else {
+      current = 1
+    }
+  }
+
+  return longest
+}
 
 export function useStreaks(habitId: string, timezone: string) {
   const { data, isLoading, error } = useQuery({
@@ -20,57 +39,35 @@ export function useStreaks(habitId: string, timezone: string) {
 
       const today = getTodayInTimeZone(timezone)
       const todayDate = parseISO(today)
-      let currentStreak = 0
-      let longestStreak = 0
-      let tempStreak = 0
-      let lastDate: Date | null = null
 
-      const sortedDates = ((completions || []) as { date: string }[])
-        .map((c) => parseISO(c.date))
+      const uniqueDates = [...new Set(((completions || []) as { date: string }[]).map((c) => c.date))]
+        .map((d) => parseISO(d))
         .sort((a, b) => b.getTime() - a.getTime())
 
-      for (let i = 0; i < sortedDates.length; i++) {
-        const currentDate = sortedDates[i]
+      if (uniqueDates.length === 0) {
+        return { currentStreak: 0, longestStreak: 0 }
+      }
 
-        if (lastDate === null) {
-          const diff = Math.abs(currentDate.getTime() - todayDate.getTime())
-          const diffDays = diff / (1000 * 60 * 60 * 24)
-          if (diffDays > 1) {
-            break
-          }
-          currentStreak = 1
-          tempStreak = 1
-          lastDate = currentDate
-          continue
-        }
+      const mostRecent = uniqueDates[0]
+      const daysSinceMostRecent = differenceInDays(todayDate, mostRecent)
 
-        const diff = Math.abs(currentDate.getTime() - lastDate.getTime())
-        const diffDays = diff / (1000 * 60 * 60 * 24)
+      if (daysSinceMostRecent > 1) {
+        return { currentStreak: 0, longestStreak: calculateLongestStreak(uniqueDates) }
+      }
 
-        if (diffDays === 1) {
-          tempStreak++
+      let currentStreak = 1
+      for (let i = 1; i < uniqueDates.length; i++) {
+        const prevDate = uniqueDates[i - 1]
+        const currDate = uniqueDates[i]
+        const diff = differenceInDays(prevDate, currDate)
+        if (diff === 1) {
+          currentStreak++
         } else {
-          if (tempStreak > longestStreak) {
-            longestStreak = tempStreak
-          }
-          tempStreak = 1
-        }
-
-        lastDate = currentDate
-      }
-
-      if (tempStreak > longestStreak) {
-        longestStreak = tempStreak
-      }
-
-      if (currentStreak === 0 && sortedDates.length > 0) {
-        const mostRecent = sortedDates[0]
-        const diff = Math.abs(mostRecent.getTime() - todayDate.getTime())
-        const diffDays = diff / (1000 * 60 * 60 * 24)
-        if (diffDays <= 1) {
-          currentStreak = tempStreak > 0 ? tempStreak : 1
+          break
         }
       }
+
+      const longestStreak = calculateLongestStreak(uniqueDates)
 
       return { currentStreak, longestStreak: Math.max(longestStreak, currentStreak) }
     },
