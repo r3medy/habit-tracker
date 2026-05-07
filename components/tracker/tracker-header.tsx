@@ -51,12 +51,20 @@ export function TrackerHeader({
             <button className="flex items-center gap-1 rounded-lg border border-muted bg-background px-2 py-1 hover:bg-muted/50 transition-colors">
               <CalendarIcon className="size-4 text-muted-foreground" />
               <span className="text-sm font-medium">{dateLabel}</span>
-              <Button variant="ghost" size="icon-xs" className="size-6" onClick={(e) => { e.stopPropagation(); onNavigate("prev") }}>
+              <span
+                className="flex size-6 shrink-0 items-center justify-center rounded-md hover:bg-muted"
+                onClick={(e) => { e.stopPropagation(); onNavigate("prev") }}
+                role="button"
+              >
                 <ChevronLeft className="size-3" />
-              </Button>
-              <Button variant="ghost" size="icon-xs" className="size-6" onClick={(e) => { e.stopPropagation(); onNavigate("next") }}>
+              </span>
+              <span
+                className="flex size-6 shrink-0 items-center justify-center rounded-md hover:bg-muted"
+                onClick={(e) => { e.stopPropagation(); onNavigate("next") }}
+                role="button"
+              >
                 <ChevronRight className="size-3" />
-              </Button>
+              </span>
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
