@@ -13,7 +13,7 @@ import {
   LayoutGrid,
   BarChart3,
   ListTodo,
-  Settings,
+  Pencil,
   Sun,
   Moon,
 } from "lucide-react"
@@ -93,14 +93,20 @@ export function Sidebar() {
 
         <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
-            <button
-              className="flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Settings"
+            <Link
+              href="/habits"
+              className={cn(
+                "flex size-10 items-center justify-center rounded-lg transition-colors",
+                pathname === "/habits"
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+              aria-label="Manage habits"
             >
-              <Settings className="size-5" />
-            </button>
+              <Pencil className="size-5" />
+            </Link>
           </TooltipTrigger>
-          <TooltipContent side="right">Settings</TooltipContent>
+          <TooltipContent side="right">Manage habits</TooltipContent>
         </Tooltip>
       </div>
     </aside>
