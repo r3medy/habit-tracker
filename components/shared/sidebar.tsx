@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 import {
   LayoutGrid,
   BarChart3,
+  ListTodo,
   Settings,
   Sun,
   Moon,
@@ -21,6 +22,7 @@ import { useEffect, useState } from "react"
 
 const navItems = [
   { href: "/tracker", icon: LayoutGrid, label: "Tracker" },
+  { href: "/todos", icon: ListTodo, label: "Todos" },
   { href: "/dashboard", icon: BarChart3, label: "Dashboard" },
 ]
 

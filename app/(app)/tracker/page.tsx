@@ -13,6 +13,12 @@ import { DailyView } from "@/components/tracker/daily-view"
 import { AddHabitDialog } from "@/components/tracker/add-habit-dialog"
 import { toast } from "sonner"
 import type { HabitInsert } from "@/lib/supabase/types"
+import { useQuery } from "@tanstack/react-query"
+import { supabase } from "@/lib/supabase/client"
+import type { TodoRow } from "@/lib/supabase/types"
+import { Button } from "@/components/ui/button"
+import { ListTodo } from "lucide-react"
+import Link from "next/link"
 
 export default function TrackerPage() {
   const [view, setView] = useState<"week" | "day">("week")
@@ -61,6 +67,23 @@ export default function TrackerPage() {
   const { completions: dailyCompletions, isLoading: dailyLoading, toggleCompletion, isToggling } = useCompletions(selectedDate, timezone)
 
   const isLoading = habitsLoading || weeklyLoading || dailyLoading
+
+  // Today's todo count
+  const { data: todayTodos } = useQuery({
+    queryKey: ["todos", today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("todos")
+        .select("*")
+        .eq("date", today)
+        .order("sort_order", { ascending: true })
+      if (error) throw error
+      return (data || []) as TodoRow[]
+    },
+    staleTime: 1000 * 60 * 5,
+    enabled: !!today,
+  })
+  const incompleteCount = todayTodos?.filter((t) => !t.completed).length || 0
 
   const handleNavigate = useCallback(
     (direction: "prev" | "next" | "today") => {
@@ -147,6 +170,23 @@ export default function TrackerPage() {
           isToggling={isToggling}
           isLoading={isLoading}
         />
+      )}
+
+      {/* Todo recap */}
+      {incompleteCount > 0 && (
+        <div className="rounded-lg border border-muted bg-background p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ListTodo className="size-4 text-muted-foreground" />
+              <span className="text-sm">
+                {incompleteCount} todo{incompleteCount !== 1 ? "s" : ""} for today
+              </span>
+            </div>
+            <Link href="/todos">
+              <Button variant="ghost" size="xs">View</Button>
+            </Link>
+          </div>
+        </div>
       )}
 
       <AddHabitDialog
