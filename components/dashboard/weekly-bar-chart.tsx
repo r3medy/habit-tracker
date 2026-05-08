@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { HABIT_COLORS } from "@/lib/constants"
+import { getHabitColor } from "@/lib/habit-utils"
 import type { CompletionRow, HabitRow } from "@/lib/supabase/types"
 import { parseISO, subWeeks, eachWeekOfInterval, format } from "date-fns"
 
@@ -18,10 +18,6 @@ interface WeeklyBarChartProps {
   completions: CompletionRow[]
   habits: HabitRow[]
   isLoading: boolean
-}
-
-function getHabitColor(colorValue: string) {
-  return HABIT_COLORS.find((c) => c.value === colorValue)?.light || HABIT_COLORS[0].light
 }
 
 export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChartProps) {
@@ -84,12 +80,13 @@ export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChar
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="week" className="text-xs" tick={{ fontSize: 12 }} />
-            <YAxis className="text-xs" tick={{ fontSize: 12 }} />
+            <XAxis dataKey="week" className="text-xs fill-muted-foreground" tick={{ fontSize: 12 }} />
+            <YAxis className="text-xs fill-muted-foreground" tick={{ fontSize: 12 }} />
             <Tooltip
+              cursor={{ fill: "currentColor", opacity: 0.05 }}
               contentStyle={{
-                backgroundColor: "hsl(var(--background))",
-                border: "1px solid hsl(var(--border))",
+                backgroundColor: "var(--background)",
+                border: "1px solid var(--border)",
                 borderRadius: "8px",
                 fontSize: "12px",
               }}

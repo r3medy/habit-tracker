@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useCallback, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { format } from "date-fns"
 import { useHabits } from "@/hooks/use-habits"
 import { useCompletions } from "@/hooks/use-completions"
 import { useUserProfile } from "@/hooks/use-user-profile"
@@ -20,10 +22,11 @@ import { Button } from "@/components/ui/button"
 import { ListTodo } from "lucide-react"
 import Link from "next/link"
 import { useGoals } from "@/hooks/use-goals"
-import { useStreaks } from "@/hooks/use-streaks"
+import { useAllStreaks } from "@/hooks/use-all-streaks"
 import { GoalsSection } from "@/components/dashboard/goals-section"
 
 export default function TrackerPage() {
+  const router = useRouter()
   const [view, setView] = useState<"week" | "day">("week")
   const [addDialogOpen, setAddDialogOpen] = useState(false)
 
@@ -73,22 +76,7 @@ export default function TrackerPage() {
   const isLoading = habitsLoading || weeklyLoading || dailyLoading
 
   // Streaks for goals
-  const streaks: Record<string, number> = {}
-  const habit0 = habits?.[0]
-  const habit1 = habits?.[1]
-  const habit2 = habits?.[2]
-  const habit3 = habits?.[3]
-  const habit4 = habits?.[4]
-  const s0 = useStreaks(habit0?.id || "", timezone)
-  const s1 = useStreaks(habit1?.id || "", timezone)
-  const s2 = useStreaks(habit2?.id || "", timezone)
-  const s3 = useStreaks(habit3?.id || "", timezone)
-  const s4 = useStreaks(habit4?.id || "", timezone)
-  if (habit0) streaks[habit0.id] = s0.longestStreak
-  if (habit1) streaks[habit1.id] = s1.longestStreak
-  if (habit2) streaks[habit2.id] = s2.longestStreak
-  if (habit3) streaks[habit3.id] = s3.longestStreak
-  if (habit4) streaks[habit4.id] = s4.longestStreak
+  const streaks = useAllStreaks(habits, timezone)
 
   // Today's todo count
   const { data: todayTodos } = useQuery({
@@ -117,16 +105,16 @@ export default function TrackerPage() {
       const shift = view === "week" ? 7 : 1
       const newDate = new Date(currentDate)
       newDate.setDate(newDate.getDate() + (direction === "next" ? shift : -shift))
-      setSelectedDate(newDate.toISOString().split("T")[0])
+      setSelectedDate(format(newDate, "yyyy-MM-dd"))
     },
     [selectedDate, view, today]
   )
 
   const handleDateSelect = useCallback(
     (date: string) => {
-      setSelectedDate(date)
+      router.push(`/day/${date}`)
     },
-    []
+    [router]
   )
 
   const handleToggleWeekly = useCallback(
@@ -185,6 +173,7 @@ export default function TrackerPage() {
           onToggle={handleToggleWeekly}
           isToggling={isToggling}
           isLoading={isLoading}
+          timezone={timezone}
         />
       ) : (
         <DailyView
@@ -192,11 +181,7 @@ export default function TrackerPage() {
           date={selectedDate}
           completions={dailyCompletions || []}
           streaks={{}}
-          subtasks={{}}
-          subtaskCompletions={{}}
           onToggle={handleToggleDaily}
-          onToggleSubtask={() => {}}
-          onToggleAllSubtasks={() => {}}
           isToggling={isToggling}
           isLoading={isLoading}
         />

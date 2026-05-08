@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { verifyPassword } from "@/app/actions"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,12 @@ const VERIFIED_KEY = "habit-tracker-verified"
 export default function GatePage() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem(VERIFIED_KEY) === "true") {
+      router.push("/tracker")
+    }
+  }, [router])
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
 

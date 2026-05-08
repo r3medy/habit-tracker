@@ -2,7 +2,10 @@
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { HabitRow } from "./habit-row"
-import type { HabitRow as HabitRowType, CompletionRow } from "@/lib/supabase/types"
+import type {
+  HabitRow as HabitRowType,
+  CompletionRow,
+} from "@/lib/supabase/types"
 import { formatDayShort } from "@/lib/tracker-utils"
 
 interface WeeklyViewProps {
@@ -12,6 +15,7 @@ interface WeeklyViewProps {
   onToggle: (habitId: string, date: string) => void
   isToggling: boolean
   isLoading: boolean
+  timezone: string
 }
 
 export function WeeklyView({
@@ -21,6 +25,7 @@ export function WeeklyView({
   onToggle,
   isToggling,
   isLoading,
+  timezone,
 }: WeeklyViewProps) {
   if (isLoading) {
     return (
@@ -53,13 +58,18 @@ export function WeeklyView({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <p className="text-muted-foreground">No habits yet.</p>
-        <p className="text-sm text-muted-foreground">Add your first habit to get started.</p>
+        <p className="text-sm text-muted-foreground">
+          Add your first habit to get started.
+        </p>
       </div>
     )
   }
 
   // Build completion lookup: date -> habit_id -> CompletionRow
-  const completionLookup: Record<string, Record<string, CompletionRow | undefined>> = {}
+  const completionLookup: Record<
+    string,
+    Record<string, CompletionRow | undefined>
+  > = {}
   for (const date of weekDays) {
     completionLookup[date] = {}
     for (const c of completions[date] || []) {
@@ -76,56 +86,64 @@ export function WeeklyView({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-muted">
-      {/* Header row */}
-      <div className="flex items-center gap-3 border-b border-muted px-4 py-2 bg-muted/30">
-        <div className="w-48 shrink-0 text-xs font-medium text-muted-foreground">Habit</div>
-        <div className="flex flex-1 items-center justify-around">
-          {weekDays.map((date) => (
-            <div key={date} className="flex flex-col items-center">
-              <span className="text-xs font-medium text-muted-foreground">
-                {formatDayShort(date, "UTC")}
-              </span>
+      <div className="min-w-[560px]">
+        {/* Header row */}
+        <div className="flex items-center gap-2 border-b border-muted bg-muted/30 px-2 py-2 sm:gap-3 sm:px-4">
+          <div className="w-28 shrink-0 text-xs font-medium text-muted-foreground sm:w-48">
+            Habit
+          </div>
+          <div className="flex flex-1 items-center justify-around">
+            {weekDays.map((date) => (
+              <div key={date} className="flex flex-col items-center">
+                <span className="text-xs font-medium text-muted-foreground">
+                  {formatDayShort(date, timezone)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="w-16 shrink-0 text-right text-xs font-medium text-muted-foreground sm:w-24">
+            Progress
+          </div>
+        </div>
+
+        {/* Habit rows */}
+        <div className="divide-y divide-muted/50">
+          {habits.map((habit) => (
+            <div key={habit.id} className="px-2 sm:px-4">
+              <HabitRow
+                habit={habit}
+                weekDays={weekDays}
+                completions={completionLookup}
+                onToggle={onToggle}
+                isToggling={isToggling}
+              />
             </div>
           ))}
         </div>
-        <div className="w-24 shrink-0 text-xs font-medium text-muted-foreground text-right">
-          Progress
-        </div>
-      </div>
 
-      {/* Habit rows */}
-      <div className="divide-y divide-muted/50">
-        {habits.map((habit) => (
-          <div key={habit.id} className="px-4">
-            <HabitRow
-              habit={habit}
-              weekDays={weekDays}
-              completions={completionLookup}
-              onToggle={onToggle}
-              isToggling={isToggling}
-            />
+        {/* Daily completion row */}
+        <div className="flex items-center gap-2 border-t border-muted bg-muted/30 px-2 py-2 sm:gap-3 sm:px-4">
+          <div className="w-28 shrink-0 text-xs text-muted-foreground sm:w-48">
+            Daily completion
           </div>
-        ))}
-      </div>
-
-      {/* Daily completion row */}
-      <div className="flex items-center gap-3 border-t border-muted px-4 py-2 bg-muted/30">
-        <div className="w-48 shrink-0 text-xs text-muted-foreground">Daily completion</div>
-        <div className="flex flex-1 items-center justify-around">
-          {dailyTotals.map((pct, i) => (
-            <span key={i} className="text-xs font-medium">
-              {Math.round(pct)}%
+          <div className="flex flex-1 items-center justify-around">
+            {dailyTotals.map((pct, i) => (
+              <span key={i} className="text-xs font-medium">
+                {Math.round(pct)}%
+              </span>
+            ))}
+          </div>
+          <div className="w-16 shrink-0 text-right text-xs text-muted-foreground sm:w-24">
+            Weekly avg.{" "}
+            <span className="font-medium">
+              {habits.length > 0
+                ? Math.round(
+                    dailyTotals.reduce((a, b) => a + b, 0) / dailyTotals.length
+                  )
+                : 0}
+              %
             </span>
-          ))}
-        </div>
-        <div className="w-24 shrink-0 text-right text-xs text-muted-foreground">
-          Weekly avg.{" "}
-          <span className="font-medium">
-            {habits.length > 0
-              ? Math.round(dailyTotals.reduce((a, b) => a + b, 0) / dailyTotals.length)
-              : 0}
-            %
-          </span>
+          </div>
         </div>
       </div>
     </div>

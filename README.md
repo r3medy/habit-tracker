@@ -1,21 +1,31 @@
-# Next.js template
+# Habit Tracker App
 
-This is a Next.js template with shadcn/ui.
+This is a Next.js habit tracking application.
 
-## Adding components
+## Getting Started
 
-To add components to your app, run the following command:
+1. Copy `.env.example` to `.env.local` and fill in the required values:
+   ```bash
+   cp .env.example .env.local
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   pnpm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   # or
+   pnpm dev
+   ```
 
-```bash
-npx shadcn@latest add button
-```
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-This will place the ui components in the `components` directory.
-
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
-```
+## Structure
+- `app/` - Next.js App Router pages
+- `components/` - React components including UI components
+- `hooks/` - Custom React hooks
+- `lib/` - Utility functions
+- `contexts/` - React contexts

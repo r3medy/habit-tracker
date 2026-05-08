@@ -82,38 +82,6 @@ export type CompletionInsert = {
   completed_at?: string | null
 }
 
-export type SubtaskRow = {
-  id: string
-  habit_id: string
-  todo_id: string | null
-  name: string
-  sort_order: number
-  created_at: string
-}
-
-export type SubtaskInsert = {
-  id?: string
-  habit_id?: string
-  todo_id?: string | null
-  name: string
-  sort_order?: number
-  created_at?: string
-}
-
-export type SubtaskCompletionRow = {
-  id: string
-  subtask_id: string
-  date: string
-  completed: boolean
-}
-
-export type SubtaskCompletionInsert = {
-  id?: string
-  subtask_id: string
-  date: string
-  completed?: boolean
-}
-
 export type GoalRow = {
   id: string
   habit_id: string
@@ -236,28 +204,6 @@ export interface Database {
           date?: string
           completed?: boolean
           completed_at?: string | null
-        }
-      }
-      subtasks: {
-        Row: SubtaskRow
-        Insert: SubtaskInsert
-        Update: {
-          id?: string
-          habit_id?: string
-          todo_id?: string | null
-          name?: string
-          sort_order?: number
-          created_at?: string
-        }
-      }
-      subtask_completions: {
-        Row: SubtaskCompletionRow
-        Insert: SubtaskCompletionInsert
-        Update: {
-          id?: string
-          subtask_id?: string
-          date?: string
-          completed?: boolean
         }
       }
       goals: {

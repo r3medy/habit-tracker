@@ -3,8 +3,6 @@ import type {
   HabitInsert,
   HabitUpdate,
   CompletionInsert,
-  SubtaskInsert,
-  SubtaskCompletionInsert,
   GoalInsert,
   GoalMilestoneInsert,
   GoalUpdate,
@@ -15,8 +13,6 @@ import type {
   TodoUpdate,
   HabitRow,
   CompletionRow,
-  SubtaskRow,
-  SubtaskCompletionRow,
   GoalRow,
   GoalMilestoneRow,
   JournalEntryRow,
@@ -27,8 +23,6 @@ import type {
 type InsertMap = {
   habits: HabitInsert
   completions: CompletionInsert
-  subtasks: SubtaskInsert
-  subtask_completions: SubtaskCompletionInsert
   goals: GoalInsert
   goal_milestones: GoalMilestoneInsert
   journal_entries: JournalEntryInsert
@@ -39,8 +33,6 @@ type InsertMap = {
 type RowMap = {
   habits: HabitRow
   completions: CompletionRow
-  subtasks: SubtaskRow
-  subtask_completions: SubtaskCompletionRow
   goals: GoalRow
   goal_milestones: GoalMilestoneRow
   journal_entries: JournalEntryRow

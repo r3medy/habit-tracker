@@ -2,11 +2,16 @@
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { ChevronLeft, ChevronRight, Plus, CalendarIcon } from "lucide-react"
 import { formatWeekRange, formatDayFull } from "@/lib/tracker-utils"
-import { parseISO } from "date-fns"
+import { parseISO, format } from "date-fns"
+import { useUserProfile } from "@/hooks/use-user-profile"
 
 interface TrackerHeaderProps {
   view: "week" | "day"
@@ -31,6 +36,7 @@ export function TrackerHeader({
   onDateSelect,
   onAddHabit,
 }: TrackerHeaderProps) {
+  const { profile } = useUserProfile()
   const dateLabel =
     view === "week"
       ? formatWeekRange(weekStart, weekEnd, timezone)
@@ -41,26 +47,36 @@ export function TrackerHeader({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Habit tracker</h1>
-        <p className="text-sm text-muted-foreground">Focus on small wins, every day.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Welcome, {profile?.name || "there"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Focus on small wins, every day.
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>
-            <button className="flex items-center gap-1 rounded-lg border border-muted bg-background px-2 py-1 hover:bg-muted/50 transition-colors">
+            <button className="flex items-center gap-1 rounded-lg border border-muted bg-background px-2 py-1 transition-colors hover:bg-muted/50">
               <CalendarIcon className="size-4 text-muted-foreground" />
               <span className="text-sm font-medium">{dateLabel}</span>
               <span
                 className="flex size-6 shrink-0 items-center justify-center rounded-md hover:bg-muted"
-                onClick={(e) => { e.stopPropagation(); onNavigate("prev") }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onNavigate("prev")
+                }}
                 role="button"
               >
                 <ChevronLeft className="size-3" />
               </span>
               <span
                 className="flex size-6 shrink-0 items-center justify-center rounded-md hover:bg-muted"
-                onClick={(e) => { e.stopPropagation(); onNavigate("next") }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onNavigate("next")
+                }}
                 role="button"
               >
                 <ChevronRight className="size-3" />
@@ -71,7 +87,7 @@ export function TrackerHeader({
             <Calendar
               mode="single"
               selected={calendarDate}
-              onSelect={(d) => d && onDateSelect(d.toISOString().split("T")[0])}
+              onSelect={(d) => d && onDateSelect(format(d, "yyyy-MM-dd"))}
               className="rounded-md"
             />
           </PopoverContent>
@@ -81,7 +97,10 @@ export function TrackerHeader({
           Today
         </Button>
 
-        <Tabs value={view} onValueChange={(v) => onViewChange(v as "week" | "day")}>
+        <Tabs
+          value={view}
+          onValueChange={(v) => onViewChange(v as "week" | "day")}
+        >
           <TabsList className="h-8">
             <TabsTrigger value="week" className="h-6 px-3 text-xs">
               Week

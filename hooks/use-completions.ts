@@ -70,6 +70,7 @@ export function useCompletions(date?: string, timezone?: string) {
     onSettled: (_data, _error, vars) => {
       queryClient.invalidateQueries({ queryKey: ["completions", vars.date] })
       queryClient.invalidateQueries({ queryKey: ["streaks"] })
+      queryClient.invalidateQueries({ queryKey: ["goal-completion-counts"] })
     },
   })
 

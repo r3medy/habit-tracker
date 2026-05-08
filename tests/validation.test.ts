@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest"
 import {
   habitSchema,
-  subtaskSchema,
   goalSchema,
   journalSchema,
   userProfileSchema,
@@ -77,23 +76,6 @@ describe("validation schemas", () => {
         schedule_type: "weekly",
         schedule_days: [0, 7],
       })
-      expect(result.success).toBe(false)
-    })
-  })
-
-  describe("subtaskSchema", () => {
-    it("validates a complete subtask", () => {
-      const result = subtaskSchema.safeParse({ name: "Warm up" })
-      expect(result.success).toBe(true)
-    })
-
-    it("rejects empty name", () => {
-      const result = subtaskSchema.safeParse({ name: "" })
-      expect(result.success).toBe(false)
-    })
-
-    it("rejects name over 100 chars", () => {
-      const result = subtaskSchema.safeParse({ name: "a".repeat(101) })
       expect(result.success).toBe(false)
     })
   })

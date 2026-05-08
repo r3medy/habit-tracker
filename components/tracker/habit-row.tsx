@@ -3,7 +3,7 @@
 import { createElement } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { HABIT_ICONS, HABIT_COLORS } from "@/lib/constants"
+import { getHabitColor, getHabitIcon } from "@/lib/habit-utils"
 import type { HabitRow, CompletionRow } from "@/lib/supabase/types"
 import { isFuture } from "@/lib/tracker-utils"
 import { cn } from "@/lib/utils"
@@ -14,14 +14,6 @@ interface HabitRowProps {
   completions: Record<string, Record<string, CompletionRow | undefined>>
   onToggle: (habitId: string, date: string) => void
   isToggling: boolean
-}
-
-function getHabitColor(colorValue: string) {
-  return HABIT_COLORS.find((c) => c.value === colorValue)?.light || HABIT_COLORS[0].light
-}
-
-function getHabitIcon(iconValue: string) {
-  return HABIT_ICONS.find((i) => i.value === iconValue)?.component || HABIT_ICONS[0].component
 }
 
 function isHabitScheduledForDay(habit: HabitRow, dayIndex: number): boolean {
@@ -43,8 +35,8 @@ export function HabitRow({ habit, weekDays, completions, onToggle, isToggling }:
   const progress = scheduledCount > 0 ? (completedCount / scheduledCount) * 100 : 0
 
   return (
-    <div className="group flex items-center gap-3 py-2">
-      <div className="flex w-48 shrink-0 items-center gap-2">
+    <div className="group flex items-center gap-2 sm:gap-3 py-2">
+      <div className="flex w-28 sm:w-48 shrink-0 items-center gap-2">
         <div
           className="flex size-8 shrink-0 items-center justify-center rounded-full"
           style={{ backgroundColor: `${borderColor}20` }}
@@ -77,7 +69,7 @@ export function HabitRow({ habit, weekDays, completions, onToggle, isToggling }:
         })}
       </div>
 
-      <div className="flex w-24 shrink-0 items-center gap-2">
+      <div className="flex w-16 sm:w-24 shrink-0 items-center gap-2">
         <Progress value={progress} className="h-1.5" />
         <span className="w-10 text-right text-xs text-muted-foreground">
           {Math.round(progress)}%

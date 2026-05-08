@@ -2,18 +2,14 @@
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { HabitCard } from "./habit-card"
-import type { HabitRow, CompletionRow, SubtaskRow, SubtaskCompletionRow } from "@/lib/supabase/types"
+import type { HabitRow, CompletionRow } from "@/lib/supabase/types"
 
 interface DailyViewProps {
   habits: HabitRow[]
   date: string
   completions: CompletionRow[]
   streaks: Record<string, number>
-  subtasks: Record<string, SubtaskRow[]>
-  subtaskCompletions: Record<string, SubtaskCompletionRow[]>
   onToggle: (habitId: string, completed: boolean) => void
-  onToggleSubtask: (habitId: string, subtaskId: string, completed: boolean) => void
-  onToggleAllSubtasks: (habitId: string, completed: boolean) => void
   isToggling: boolean
   isLoading: boolean
 }
@@ -23,11 +19,7 @@ export function DailyView({
   date: _date,
   completions,
   streaks,
-  subtasks,
-  subtaskCompletions,
   onToggle,
-  onToggleSubtask,
-  onToggleAllSubtasks,
   isToggling,
   isLoading,
 }: DailyViewProps) {
@@ -55,14 +47,6 @@ export function DailyView({
     completionLookup[c.habit_id] = c
   }
 
-  const subtaskCompletionLookup: Record<string, Record<string, SubtaskCompletionRow | undefined>> = {}
-  for (const habitId of Object.keys(subtaskCompletions)) {
-    subtaskCompletionLookup[habitId] = {}
-    for (const sc of subtaskCompletions[habitId]) {
-      subtaskCompletionLookup[habitId][sc.subtask_id] = sc
-    }
-  }
-
   return (
     <div className="space-y-3">
       {habits.map((habit) => (
@@ -71,11 +55,7 @@ export function DailyView({
           habit={habit}
           completion={completionLookup[habit.id]}
           streak={streaks[habit.id] ?? 0}
-          subtasks={subtasks[habit.id] ?? []}
-          subtaskCompletions={subtaskCompletionLookup[habit.id] ?? {}}
           onToggle={(completed) => onToggle(habit.id, completed)}
-          onToggleSubtask={(subtaskId, completed) => onToggleSubtask(habit.id, subtaskId, completed)}
-          _onToggleAllSubtasks={(completed) => onToggleAllSubtasks(habit.id, completed)}
           isToggling={isToggling}
         />
       ))}

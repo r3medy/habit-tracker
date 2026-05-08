@@ -7,6 +7,7 @@ import { useTodoCarryOver } from "@/hooks/use-todo-carry-over"
 import { getTodayInTimeZone } from "@/lib/date-utils"
 import { isToday } from "@/lib/tracker-utils"
 import { formatDayFull } from "@/lib/tracker-utils"
+import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,8 +23,19 @@ export default function TodoPage() {
   const [selectedDate, setSelectedDate] = useState(today)
   const [newTodoText, setNewTodoText] = useState("")
 
-  const { todos, isLoading, createTodo, updateTodo, deleteTodo, reorderTodos, isCreating } = useTodos(selectedDate)
-  const { isCarrying, overdueCount } = useTodoCarryOver(selectedDate, isToday(selectedDate, timezone))
+  const {
+    todos,
+    isLoading,
+    createTodo,
+    updateTodo,
+    deleteTodo,
+    reorderTodos,
+    isCreating,
+  } = useTodos(selectedDate)
+  const { isCarrying, overdueCount } = useTodoCarryOver(
+    selectedDate,
+    isToday(selectedDate, timezone)
+  )
 
   const handleAddTodo = useCallback(async () => {
     const trimmed = newTodoText.trim()
@@ -95,7 +107,7 @@ export default function TodoPage() {
       }
       const d = new Date(selectedDate + "T00:00:00")
       d.setDate(d.getDate() + (direction === "next" ? 1 : -1))
-      setSelectedDate(d.toISOString().split("T")[0])
+      setSelectedDate(format(d, "yyyy-MM-dd"))
     },
     [selectedDate, today]
   )
@@ -108,22 +120,40 @@ export default function TodoPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Todos</h1>
           <p className="text-sm text-muted-foreground">
-            {formatDayFull(selectedDate, timezone)} · {activeCount} active
+            {formatDayFull(selectedDate, timezone)} — {activeCount} active
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 rounded-lg border border-muted bg-background px-2 py-1">
             <Calendar className="size-4 text-muted-foreground" />
-            <Button variant="ghost" size="icon-xs" className="size-6" onClick={() => handleNavigate("prev")}>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="size-6"
+              onClick={() => handleNavigate("prev")}
+            >
               <ChevronLeft className="size-3" />
             </Button>
-            <span className="text-sm font-medium">{formatDayFull(selectedDate, timezone)}</span>
-            <Button variant="ghost" size="icon-xs" className="size-6" onClick={() => handleNavigate("next")}>
+            <span className="text-sm font-medium">
+              {formatDayFull(selectedDate, timezone)}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="size-6"
+              onClick={() => handleNavigate("next")}
+            >
               <ChevronRight className="size-3" />
             </Button>
           </div>
-          <Button variant="outline" size="xs" onClick={() => handleNavigate("today")}>Today</Button>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => handleNavigate("today")}
+          >
+            Today
+          </Button>
         </div>
       </div>
 
@@ -147,7 +177,10 @@ export default function TodoPage() {
             disabled={isCreating}
           />
         </InputGroup>
-        <Button onClick={handleAddTodo} disabled={isCreating || !newTodoText.trim()}>
+        <Button
+          onClick={handleAddTodo}
+          disabled={isCreating || !newTodoText.trim()}
+        >
           <Plus className="size-4" />
           <span className="hidden sm:inline">Add</span>
         </Button>
@@ -155,7 +188,8 @@ export default function TodoPage() {
 
       {isCarrying && (
         <div className="rounded-lg border border-muted bg-muted/30 p-3 text-center text-sm text-muted-foreground">
-          Carrying over {overdueCount} todo{overdueCount !== 1 ? "s" : ""} from yesterday...
+          Carrying over {overdueCount} todo{overdueCount !== 1 ? "s" : ""} from
+          yesterday...
         </div>
       )}
 

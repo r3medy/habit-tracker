@@ -35,8 +35,8 @@ export function OnboardingStepper() {
       if (profile?.id) {
         setProfileId(profile.id)
       }
-    } catch {
-      // If create fails (profile may exist), proceed anyway
+    } catch (err) {
+      console.error("Failed to create profile during onboarding:", err)
     }
     setStep(1)
   }
@@ -55,8 +55,8 @@ export function OnboardingStepper() {
 
       localStorage.setItem("habit-tracker-onboarded", "true")
       setStep(2)
-    } catch {
-      // errors surface via hooks
+    } catch (err) {
+      console.error("Failed to create habits during onboarding:", err)
     } finally {
       setIsCreating(false)
     }

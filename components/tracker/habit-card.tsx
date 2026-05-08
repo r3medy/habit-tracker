@@ -1,26 +1,17 @@
 "use client"
 
-import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { HABIT_ICONS, HABIT_COLORS } from "@/lib/constants"
-import type { HabitRow, CompletionRow, SubtaskRow, SubtaskCompletionRow } from "@/lib/supabase/types"
-import { ChevronDown, ChevronUp, Flame } from "lucide-react"
-import { SubtaskList } from "./subtask-list"
+import { HABIT_ICONS } from "@/lib/constants"
+import { getHabitColor } from "@/lib/habit-utils"
+import type { HabitRow, CompletionRow } from "@/lib/supabase/types"
+import { Flame } from "lucide-react"
 
 interface HabitCardProps {
   habit: HabitRow
   completion: CompletionRow | undefined
   streak: number
-  subtasks: SubtaskRow[]
-  subtaskCompletions: Record<string, SubtaskCompletionRow | undefined>
   onToggle: (completed: boolean) => void
-  onToggleSubtask: (subtaskId: string, completed: boolean) => void
-  _onToggleAllSubtasks: (completed: boolean) => void
   isToggling: boolean
-}
-
-function getHabitColor(colorValue: string) {
-  return HABIT_COLORS.find((c) => c.value === colorValue)?.light || HABIT_COLORS[0].light
 }
 
 interface HabitIconProps {
@@ -38,14 +29,9 @@ export function HabitCard({
   habit,
   completion,
   streak,
-  subtasks,
-  subtaskCompletions,
   onToggle,
-  onToggleSubtask,
-  _onToggleAllSubtasks,
   isToggling,
 }: HabitCardProps) {
-  const [expanded, setExpanded] = useState(false)
   const borderColor = getHabitColor(habit.color)
   const checked = completion?.completed ?? false
 
@@ -72,20 +58,6 @@ export function HabitCard({
         </div>
 
         <div className="flex items-center gap-2">
-          {subtasks.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              {expanded ? (
-                <ChevronUp className="size-3" />
-              ) : (
-                <ChevronDown className="size-3" />
-              )}
-              {subtasks.length}
-            </button>
-          )}
           <Checkbox
             checked={checked}
             disabled={isToggling}
@@ -94,15 +66,6 @@ export function HabitCard({
           />
         </div>
       </div>
-
-      {expanded && subtasks.length > 0 && (
-        <SubtaskList
-          subtasks={subtasks}
-          completions={subtaskCompletions}
-          onToggleSubtask={onToggleSubtask}
-          isToggling={isToggling}
-        />
-      )}
     </div>
   )
 }

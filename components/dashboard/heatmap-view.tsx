@@ -33,14 +33,14 @@ const HEATMAP_COLORS_LIGHT = [
 ]
 
 const HEATMAP_COLORS_DARK = [
-  "oklch(0.2 0.01 264)",
-  "oklch(0.55 0.12 160)",
-  "oklch(0.65 0.16 160)",
+  "oklch(0.3 0.015 264)",
+  "oklch(0.5 0.12 160)",
+  "oklch(0.62 0.16 160)",
   "oklch(0.75 0.18 160)",
 ]
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""]
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 const CELL_SIZE = 11
 const GAP = 3
@@ -195,7 +195,7 @@ export function HeatmapView({ completions, timezone, isLoading }: HeatmapViewPro
       </div>
 
       {/* Legend */}
-      <div className="mt-4 flex items-center justify-end gap-1 text-xs text-muted-foreground">
+      <div className="mt-4 flex items-center justify-end gap-1 text-xs text-muted-foreground heatmap-root">
         <span>Less</span>
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="rounded-[2px]" style={{ backgroundColor: `var(--h${i})`, width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px` }} />

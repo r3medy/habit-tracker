@@ -8,10 +8,6 @@ export const habitSchema = z.object({
   schedule_days: z.array(z.number().min(0).max(6)).optional().nullable(),
 })
 
-export const subtaskSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be 100 characters or less"),
-})
-
 export const goalSchema = z.object({
   target_type: z.enum(["streak", "count"]),
   target_value: z.number().int().positive("Target must be a positive number"),

@@ -7,18 +7,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { HABIT_COLORS } from "@/lib/constants"
+import { getHabitColor } from "@/lib/habit-utils"
 import type { CompletionRow, HabitRow } from "@/lib/supabase/types"
-import { cn } from "@/lib/utils"
 
 interface CompletionPieChartProps {
   completions: CompletionRow[]
   habits: HabitRow[]
   isLoading: boolean
-}
-
-function getHabitColor(colorValue: string) {
-  return HABIT_COLORS.find((c) => c.value === colorValue)?.light || HABIT_COLORS[0].light
 }
 
 export function CompletionPieChart({ completions, habits, isLoading }: CompletionPieChartProps) {
@@ -66,7 +61,7 @@ export function CompletionPieChart({ completions, habits, isLoading }: Completio
   return (
     <div className="rounded-lg border border-muted bg-background p-4">
       <h3 className="mb-2 text-sm font-medium">Completions by habit</h3>
-      <p className="mb-4 text-xs text-muted-foreground">Last 30 days</p>
+      <p className="mb-4 text-xs text-muted-foreground">Last 14 days</p>
 
       <div className="flex items-center justify-center gap-8">
         <ChartContainer config={config} className="h-52 w-52">

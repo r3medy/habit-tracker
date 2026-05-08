@@ -1,5 +1,9 @@
 import { supabase } from "@/lib/supabase/client"
-import { getTodayInTimeZone, hasDayChanged, getLastNDays } from "@/lib/date-utils"
+import {
+  getTodayInTimeZone,
+  hasDayChanged,
+  getLastNDays,
+} from "@/lib/date-utils"
 
 const LAST_VISITED_KEY = "habit-tracker-last-visited"
 
@@ -25,15 +29,21 @@ export function checkAndResetIfNeeded(timezone: string): boolean {
   return false
 }
 
-export function setupAutoReset(timezone: string, onReset: () => void): () => void {
+export function setupAutoReset(
+  timezone: string,
+  onReset: () => void
+): () => void {
   checkAndResetIfNeeded(timezone)
 
-  const interval = setInterval(() => {
-    const needsReset = checkAndResetIfNeeded(timezone)
-    if (needsReset) {
-      onReset()
-    }
-  }, 5 * 60 * 1000)
+  const interval = setInterval(
+    () => {
+      const needsReset = checkAndResetIfNeeded(timezone)
+      if (needsReset) {
+        onReset()
+      }
+    },
+    5 * 60 * 1000
+  )
 
   const handleVisibility = () => {
     if (document.visibilityState === "visible") {
@@ -56,17 +66,6 @@ export async function getTodayCompletions(timezone: string) {
   const today = getTodayInTimeZone(timezone)
   const { data, error } = await supabase
     .from("completions")
-    .select("*")
-    .eq("date", today)
-
-  if (error) throw error
-  return data
-}
-
-export async function getTodaySubtaskCompletions(timezone: string) {
-  const today = getTodayInTimeZone(timezone)
-  const { data, error } = await supabase
-    .from("subtask_completions")
     .select("*")
     .eq("date", today)
 

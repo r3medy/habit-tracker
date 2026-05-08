@@ -6,26 +6,21 @@ import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
+import { AddHabitDialog } from "@/components/tracker/add-habit-dialog"
 import { HABIT_ICONS, HABIT_COLORS } from "@/lib/constants"
-import type { HabitRow } from "@/lib/supabase/types"
 import { cn } from "@/lib/utils"
-import { Pencil, Trash2, Check, X } from "lucide-react"
+import { getHabitColor, getHabitIcon } from "@/lib/habit-utils"
+import type { HabitRow, HabitInsert } from "@/lib/supabase/types"
+import { Pencil, Trash2, Check, X, Plus } from "lucide-react"
 import { toast } from "sonner"
 
-function getHabitColor(colorValue: string) {
-  return HABIT_COLORS.find((c) => c.value === colorValue)?.light || HABIT_COLORS[0].light
-}
-
-function getHabitIcon(iconValue: string) {
-  return HABIT_ICONS.find((i) => i.value === iconValue)?.component || HABIT_ICONS[0].component
-}
-
 export default function HabitsPage() {
-  const { habits, isLoading, updateHabit, deleteHabit, isUpdating, isDeleting } = useHabits()
+  const { habits, isLoading, updateHabit, deleteHabit, createHabit, isCreating, isUpdating, isDeleting } = useHabits()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [editIcon, setEditIcon] = useState("")
   const [editColor, setEditColor] = useState("")
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
 
   const startEdit = (habit: HabitRow) => {
     setEditingId(habit.id)
@@ -58,11 +53,27 @@ export default function HabitsPage() {
     }
   }
 
+  const handleAddHabit = async (habit: HabitInsert) => {
+    try {
+      await createHabit(habit)
+      setAddDialogOpen(false)
+      toast.success("Habit added")
+    } catch {
+      toast.error("Failed to add habit")
+    }
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Habits</h1>
-        <p className="text-sm text-muted-foreground">Manage your habits — rename, recolor, or remove.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Habits</h1>
+          <p className="text-sm text-muted-foreground">Manage your habits — rename, recolor, or remove.</p>
+        </div>
+        <Button size="sm" onClick={() => setAddDialogOpen(true)}>
+          <Plus className="mr-1 size-3" />
+          New habit
+        </Button>
       </div>
 
       {isLoading ? (
@@ -74,7 +85,11 @@ export default function HabitsPage() {
       ) : habits?.length === 0 ? (
         <div className="rounded-lg border border-muted bg-background p-8 text-center">
           <p className="text-sm text-muted-foreground">No habits yet</p>
-          <p className="mt-1 text-xs text-muted-foreground">Add habits from the tracker page.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Add your first habit to get started.</p>
+          <Button size="sm" className="mt-4" onClick={() => setAddDialogOpen(true)}>
+            <Plus className="mr-1 size-3" />
+            Add habit
+          </Button>
         </div>
       ) : (
         <div className="space-y-2">
@@ -198,6 +213,13 @@ export default function HabitsPage() {
           })}
         </div>
       )}
+
+      <AddHabitDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onAdd={handleAddHabit}
+        isAdding={isCreating}
+      />
     </div>
   )
 }

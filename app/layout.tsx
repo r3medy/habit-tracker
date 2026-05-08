@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
@@ -6,6 +7,14 @@ import { Providers } from "@/contexts/providers"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Habit Tracker",
+    default: "Habit Tracker",
+  },
+  icons: "/Icon.png",
+}
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 

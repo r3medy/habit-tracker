@@ -38,7 +38,8 @@ const COMMON_TIMEZONES = [
 function getBrowserTimezone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone
-  } catch {
+  } catch (err) {
+    console.error("Failed to detect browser timezone:", err)
     return "UTC"
   }
 }

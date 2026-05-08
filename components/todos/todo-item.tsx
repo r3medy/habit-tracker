@@ -7,9 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { cn } from "@/lib/utils"
-import { useSubtasks } from "@/hooks/use-subtasks"
-import type { TodoRow, SubtaskRow, SubtaskCompletionRow } from "@/lib/supabase/types"
-import { GripVertical, ChevronDown, ChevronUp, Pin, PinOff, Trash2, Plus } from "lucide-react"
+import type { TodoRow } from "@/lib/supabase/types"
+import { GripVertical, Pin, PinOff, Trash2 } from "lucide-react"
 
 interface TodoItemProps {
   todo: TodoRow
@@ -32,10 +31,8 @@ export function TodoItem({
   onDelete,
   isUpdating,
 }: TodoItemProps) {
-  const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editText, setEditText] = useState(todo.text)
-  const [newSubText, setNewSubText] = useState("")
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: todo.id,
@@ -46,12 +43,6 @@ export function TodoItem({
     transition,
   }
 
-  const { subtasks, completions, createSubtask, deleteSubtask, toggleSubtaskCompletion } = useSubtasks("", timezone, todo.id)
-
-  const subtaskCompletionLookup: Record<string, SubtaskCompletionRow | undefined> = {}
-  for (const sc of completions || []) {
-    subtaskCompletionLookup[sc.subtask_id] = sc
-  }
 
   const handleSaveText = () => {
     const trimmed = editText.trim()
@@ -61,17 +52,6 @@ export function TodoItem({
       setEditText(todo.text)
     }
     setEditing(false)
-  }
-
-  const handleAddSub = async () => {
-    const trimmed = newSubText.trim()
-    if (!trimmed) return
-    try {
-      await createSubtask({ name: trimmed, sort_order: 0 })
-      setNewSubText("")
-    } catch {
-      // toast handled by hook
-    }
   }
 
   return (
@@ -115,16 +95,6 @@ export function TodoItem({
           </span>
         )}
 
-        {subtasks && subtasks.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            {expanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-            {subtasks.length}
-          </button>
-        )}
 
         <Button
           variant="ghost"
@@ -146,48 +116,7 @@ export function TodoItem({
         </Button>
       </div>
 
-      {expanded && (
-        <div className="border-t border-muted/50 px-10 pb-2 pt-1">
-          {subtasks?.map((sub) => {
-            const subCompleted = subtaskCompletionLookup[sub.id]?.completed ?? false
-            return (
-              <div key={sub.id} className="flex items-center gap-2 py-1">
-                <Checkbox
-                  checked={subCompleted}
-                  disabled={isUpdating}
-                  onCheckedChange={(checked) => toggleSubtaskCompletion({ subtaskId: sub.id, date, completed: checked === true })}
-                  className="size-3.5"
-                />
-                <span className={cn("flex-1 text-sm", subCompleted && "text-muted-foreground line-through")}>
-                  {sub.name}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  className="size-5 text-muted-foreground hover:text-destructive"
-                  onClick={() => deleteSubtask(sub.id)}
-                >
-                  <Trash2 className="size-3" />
-                </Button>
-              </div>
-            )
-          })}
-          <div className="flex items-center gap-2 py-1">
-            <InputGroup className="flex-1">
-              <InputGroupInput
-                placeholder="Add sub-todo..."
-                value={newSubText}
-                onChange={(e) => setNewSubText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddSub()
-                }}
-                className="h-7 text-xs"
-                maxLength={200}
-              />
-            </InputGroup>
-          </div>
-        </div>
-      )}
+
     </div>
   )
 }

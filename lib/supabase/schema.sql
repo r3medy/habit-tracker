@@ -44,25 +44,6 @@ create table if not exists todos (
   created_at timestamptz not null default now()
 );
 
--- Subtasks (single level only, shared between habits and todos)
-create table if not exists subtasks (
-  id uuid primary key default gen_random_uuid(),
-  habit_id uuid references habits(id) on delete cascade,
-  todo_id uuid references todos(id) on delete cascade,
-  name text not null,
-  sort_order int not null default 0,
-  created_at timestamptz not null default now()
-);
-
--- Subtask completions (one row per subtask per day)
-create table if not exists subtask_completions (
-  id uuid primary key default gen_random_uuid(),
-  subtask_id uuid references subtasks(id) on delete cascade,
-  date date not null,
-  completed boolean not null default false,
-  unique(subtask_id, date)
-);
-
 -- Goals
 create table if not exists goals (
   id uuid primary key default gen_random_uuid(),
@@ -98,8 +79,6 @@ create table if not exists journal_entries (
 -- Indexes for performance
 create index if not exists idx_completions_habit_date on completions(habit_id, date);
 create index if not exists idx_completions_date on completions(date);
-create index if not exists idx_subtask_completions_subtask_date on subtask_completions(subtask_id, date);
-create index if not exists idx_subtask_completions_date on subtask_completions(date);
 create index if not exists idx_goals_habit on goals(habit_id);
 create index if not exists idx_journal_user_date on journal_entries(user_id, date);
 create index if not exists idx_todos_date on todos(date);

@@ -32,7 +32,8 @@ export function JournalSection({ date }: JournalSectionProps) {
     try {
       await saveEntry({ date: journalDate, content: text || null, userId: profile.id })
       setSaved(true)
-    } catch {
+    } catch (err) {
+      console.error("Failed to save journal entry:", err)
       setSaved(true)
     }
   }, [profile?.id, journalDate, saveEntry])
