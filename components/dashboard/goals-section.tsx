@@ -219,22 +219,44 @@ export function GoalsSection({
     [activeGoals]
   )
 
+  // Earliest start_date across all count goals (for range filter)
+  const earliestStart = useMemo(() => {
+    if (countGoals.length === 0) return ""
+    return countGoals.reduce(
+      (min, g) => (g.start_date < min ? g.start_date : min),
+      countGoals[0].start_date
+    )
+  }, [countGoals])
+
   const { data: completionCounts = {} } = useQuery({
     queryKey: ["goal-completion-counts", countGoals.map((g) => g.id)],
     queryFn: async () => {
       if (countGoals.length === 0) return {}
+
+      const habitIds = [...new Set(countGoals.map((g) => g.habit_id))]
+      const { data, error } = await supabase
+        .from("completions")
+        .select("habit_id, date")
+        .in("habit_id", habitIds)
+        .eq("completed", true)
+        .gte("date", earliestStart)
+
+      if (error) throw error
+
+      // Build a per-goal start_date map
+      const goalStartByHabit = new Map<string, string>()
+      for (const g of countGoals) {
+        const existing = goalStartByHabit.get(g.habit_id)
+        if (!existing || g.start_date < existing) {
+          goalStartByHabit.set(g.habit_id, g.start_date)
+        }
+      }
+
       const counts: Record<string, number> = {}
-
-      for (const goal of countGoals) {
-        const { count, error } = await supabase
-          .from("completions")
-          .select("*", { count: "exact", head: true })
-          .eq("habit_id", goal.habit_id)
-          .eq("completed", true)
-          .gte("date", goal.start_date)
-
-        if (!error && count !== null) {
-          counts[goal.habit_id] = count
+      for (const row of (data || []) as { habit_id: string; date: string }[]) {
+        const start = goalStartByHabit.get(row.habit_id)
+        if (start && row.date >= start) {
+          counts[row.habit_id] = (counts[row.habit_id] || 0) + 1
         }
       }
 

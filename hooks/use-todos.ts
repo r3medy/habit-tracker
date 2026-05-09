@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase/client"
-import { insertTyped, updateTyped } from "@/lib/supabase/typed"
+import { insertTyped, updateTyped, updateSortOrder } from "@/lib/supabase/typed"
 import type { TodoRow, TodoInsert } from "@/lib/supabase/types"
 
 export function useTodos(date: string) {
@@ -89,10 +89,8 @@ export function useTodos(date: string) {
 
   const reorderMutation = useMutation({
     mutationFn: async (updates: { id: string; sort_order: number }[]) => {
-      for (const update of updates) {
-        const { error } = await updateTyped("todos", { sort_order: update.sort_order }, "id", update.id)
-        if (error) throw error
-      }
+      const error = await updateSortOrder("todos", updates)
+      if (error) throw error
     },
     onMutate: async (updates) => {
       await queryClient.cancelQueries({ queryKey: ["todos", date] })

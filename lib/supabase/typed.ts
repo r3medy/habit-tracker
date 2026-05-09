@@ -51,12 +51,21 @@ export async function insertTyped<T extends keyof InsertMap>(
   table: T,
   data: InsertMap[T][]
 ): Promise<{ data: RowMap[T] | null; error: Error | null }> {
+  if (data.length === 1) {
+    const { data: result, error } = await supabase
+      .from(table)
+      .insert(data as any)
+      .select()
+      .single()
+    return { data: result as RowMap[T] | null, error }
+  }
+  
   const { data: result, error } = await supabase
     .from(table)
-    .insert(data as never)
+    .insert(data as any)
     .select()
-    .single()
-  return { data: result as RowMap[T] | null, error }
+    
+  return { data: (result as RowMap[T][] | null)?.[0] ?? null, error }
 }
 
 export async function upsertTyped<T extends keyof InsertMap>(
@@ -88,14 +97,15 @@ export async function updateTyped<T extends keyof UpdateMap>(
 }
 
 export async function updateSortOrder(
+  table: "habits" | "todos",
   updates: { id: string; sort_order: number }[]
 ): Promise<Error | null> {
-  const promises = updates.map(({ id, sort_order }) =>
-    supabase.from("habits").update({ sort_order } as never).eq("id", id)
-  )
-  const results = await Promise.all(promises)
-  const errors = results.filter((r) => r.error)
-  return errors.length > 0 ? errors[0].error : null
+  const { error } = await (supabase.rpc as any)("batch_update_sort_order", {
+    p_table: table,
+    p_ids: updates.map((u) => u.id),
+    p_orders: updates.map((u) => u.sort_order),
+  })
+  return error
 }
 
 export async function insertMilestones(

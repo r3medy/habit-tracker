@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { useHabits } from "@/hooks/use-habits"
-import { useCompletions } from "@/hooks/use-completions"
+import { useCompletionsRange } from "@/hooks/use-completions-range"
 import { useAllStreaks } from "@/hooks/use-all-streaks"
 import { useUserProfile } from "@/hooks/use-user-profile"
 import { getLastNDays } from "@/lib/date-utils"
@@ -24,40 +24,31 @@ export default function DashboardPage() {
 
   const { habits, isLoading: habitsLoading } = useHabits()
 
-  // Fetch last 14 days for charts and stats
   const last14Days = useMemo(() => getLastNDays(14, timezone), [timezone])
-  const d0 = useCompletions(last14Days[0] || "", timezone)
-  const d1 = useCompletions(last14Days[1] || "", timezone)
-  const d2 = useCompletions(last14Days[2] || "", timezone)
-  const d3 = useCompletions(last14Days[3] || "", timezone)
-  const d4 = useCompletions(last14Days[4] || "", timezone)
-  const d5 = useCompletions(last14Days[5] || "", timezone)
-  const d6 = useCompletions(last14Days[6] || "", timezone)
-  const d7 = useCompletions(last14Days[7] || "", timezone)
-  const d8 = useCompletions(last14Days[8] || "", timezone)
-  const d9 = useCompletions(last14Days[9] || "", timezone)
-  const d10 = useCompletions(last14Days[10] || "", timezone)
-  const d11 = useCompletions(last14Days[11] || "", timezone)
-  const d12 = useCompletions(last14Days[12] || "", timezone)
-  const d13 = useCompletions(last14Days[13] || "", timezone)
+  const startDate = last14Days[0] || ""
+  const endDate = last14Days[last14Days.length - 1] || ""
 
-  const allDays = [d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13]
-  const allCompletions = useMemo(
-    () => allDays.flatMap((d) => d.completions || []),
-    [allDays]
-  )
-  const chartLoading = allDays.some((d) => d.isLoading)
+  const { completions: allCompletions, isLoading: chartLoading } =
+    useCompletionsRange(startDate, endDate)
 
   // Weekly stats (last 7 days)
+  const weeklyDays = useMemo(
+    () => new Set(last14Days.slice(0, 7)),
+    [last14Days]
+  )
   const weeklyCompletions = useMemo(
-    () => allDays.slice(0, 7).flatMap((d) => d.completions || []),
-    [allDays]
+    () => (allCompletions || []).filter((c) => weeklyDays.has(c.date)),
+    [allCompletions, weeklyDays]
   )
 
-  // Heatmap (last 14 days for now, expandable later)
+  // Heatmap
   const heatmapCompletions = useMemo(
-    () => allDays.map((d) => (d.completions || []).map((c) => ({ date: c.date, completed: c.completed }))).flat(),
-    [allDays]
+    () =>
+      (allCompletions || []).map((c) => ({
+        date: c.date,
+        completed: c.completed,
+      })),
+    [allCompletions]
   )
 
   // Streaks
@@ -71,14 +62,22 @@ export default function DashboardPage() {
     [weeklyCompletions, habits?.length]
   )
   const bestStreak = useMemo(() => getBestStreak(streaks), [streaks])
-  const totalCompletions = useMemo(() => getTotalCompletions(heatmapCompletions), [heatmapCompletions])
-  const dailyAverage = useMemo(() => getDailyAverage([weeklyCompletions]), [weeklyCompletions])
+  const totalCompletions = useMemo(
+    () => getTotalCompletions(heatmapCompletions),
+    [heatmapCompletions]
+  )
+  const dailyAverage = useMemo(
+    () => getDailyAverage([weeklyCompletions]),
+    [weeklyCompletions]
+  )
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-4 sm:p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Track your progress and stay motivated.</p>
+        <p className="text-sm text-muted-foreground">
+          Track your progress and stay motivated.
+        </p>
       </div>
 
       <StatsOverview
@@ -99,12 +98,12 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <CompletionPieChart
-          completions={allCompletions}
+          completions={allCompletions || []}
           habits={habits || []}
           isLoading={chartLoading}
         />
         <WeeklyBarChart
-          completions={allCompletions}
+          completions={allCompletions || []}
           habits={habits || []}
           isLoading={chartLoading}
         />

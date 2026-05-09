@@ -82,3 +82,45 @@ create index if not exists idx_completions_date on completions(date);
 create index if not exists idx_goals_habit on goals(habit_id);
 create index if not exists idx_journal_user_date on journal_entries(user_id, date);
 create index if not exists idx_todos_date on todos(date);
+
+-- Optimized Indexes (Performance Best Practices)
+create index if not exists idx_completions_habit_completed_date on completions(habit_id, completed, date desc);
+create index if not exists idx_todos_pending_carry on todos(date) where completed = false and carry_over = true;
+create index if not exists idx_goals_active on goals(habit_id) where completed = false;
+
+-- RPC Functions
+create or replace function batch_update_sort_order(
+  p_table text, p_ids uuid[], p_orders int[]
+) returns void language plpgsql security definer as $$
+begin
+  if p_table = 'habits' then
+    update habits set sort_order = new_order
+    from unnest(p_ids, p_orders) as t(id, new_order)
+    where habits.id = t.id;
+  elsif p_table = 'todos' then
+    update todos set sort_order = new_order
+    from unnest(p_ids, p_orders) as t(id, new_order)
+    where todos.id = t.id;
+  end if;
+end;
+$$;
+
+/*
+-- RLS Migration (Prerequisites for Multi-Tenant / Production)
+-- Note: Uncomment and adapt if migrating to proper Supabase Auth
+
+alter table habits add column user_id uuid references auth.users(id);
+alter table completions add column user_id uuid references auth.users(id);
+alter table todos add column user_id uuid references auth.users(id);
+alter table goals add column user_id uuid references auth.users(id);
+
+alter table habits enable row level security;
+alter table completions enable row level security;
+alter table todos enable row level security;
+alter table goals enable row level security;
+alter table journal_entries enable row level security;
+alter table goal_milestones enable row level security;
+alter table user_profile enable row level security;
+
+create policy habits_user_policy on habits for all using (user_id = (select auth.uid()));
+*/

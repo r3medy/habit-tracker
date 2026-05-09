@@ -55,7 +55,7 @@ export function useHabits() {
 
   const reorderMutation = useMutation({
     mutationFn: async (updates: { id: string; sort_order: number }[]) => {
-      const error = await updateSortOrder(updates)
+      const error = await updateSortOrder("habits", updates)
       if (error) throw error
     },
     onSuccess: () => {

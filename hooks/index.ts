@@ -1,6 +1,6 @@
 export { useHabits } from "./use-habits"
 export { useCompletions } from "./use-completions"
-export { useStreaks } from "./use-streaks"
+export { useCompletionsRange } from "./use-completions-range"
 export { useGoals } from "./use-goals"
 export { useJournal } from "./use-journal"
 export { useUserProfile } from "./use-user-profile"

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { useHabits } from "@/hooks/use-habits"
 import { useCompletions } from "@/hooks/use-completions"
+import { useCompletionsRange } from "@/hooks/use-completions-range"
 import { useUserProfile } from "@/hooks/use-user-profile"
 import { getTodayInTimeZone } from "@/lib/date-utils"
 import { getWeekRange, getDaysInWeek, isFuture } from "@/lib/tracker-utils"
@@ -17,7 +18,6 @@ import { toast } from "sonner"
 import type { HabitInsert } from "@/lib/supabase/types"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase/client"
-import type { TodoRow } from "@/lib/supabase/types"
 import { Button } from "@/components/ui/button"
 import { ListTodo } from "lucide-react"
 import Link from "next/link"
@@ -48,52 +48,42 @@ export default function TrackerPage() {
     [weekStart, timezone]
   )
 
-  // Weekly: fetch all 7 days
-  const day0 = useCompletions(weekDays[0] || "", timezone)
-  const day1 = useCompletions(weekDays[1] || "", timezone)
-  const day2 = useCompletions(weekDays[2] || "", timezone)
-  const day3 = useCompletions(weekDays[3] || "", timezone)
-  const day4 = useCompletions(weekDays[4] || "", timezone)
-  const day5 = useCompletions(weekDays[5] || "", timezone)
-  const day6 = useCompletions(weekDays[6] || "", timezone)
+  // Weekly: single range query instead of 7 individual calls
+  const {
+    byDate: weeklyCompletions,
+    isLoading: weeklyLoading,
+    toggleCompletion,
+    isToggling,
+  } = useCompletionsRange(weekStart, weekEnd)
 
-  const weeklyCompletions = useMemo(() => ({
-    [weekDays[0] || ""]: day0.completions || [],
-    [weekDays[1] || ""]: day1.completions || [],
-    [weekDays[2] || ""]: day2.completions || [],
-    [weekDays[3] || ""]: day3.completions || [],
-    [weekDays[4] || ""]: day4.completions || [],
-    [weekDays[5] || ""]: day5.completions || [],
-    [weekDays[6] || ""]: day6.completions || [],
-  }), [weekDays, day0.completions, day1.completions, day2.completions, day3.completions, day4.completions, day5.completions, day6.completions])
-
-  const weeklyLoading = day0.isLoading || day1.isLoading || day2.isLoading ||
-    day3.isLoading || day4.isLoading || day5.isLoading || day6.isLoading
-
-  // Daily: fetch single day
-  const { completions: dailyCompletions, isLoading: dailyLoading, toggleCompletion, isToggling } = useCompletions(selectedDate, timezone)
+  // Daily: fetch single day (for the "day" tab view)
+  const {
+    completions: dailyCompletions,
+    isLoading: dailyLoading,
+    toggleCompletion: toggleDailyCompletion,
+    isToggling: isDailyToggling,
+  } = useCompletions(selectedDate, timezone)
 
   const isLoading = habitsLoading || weeklyLoading || dailyLoading
 
   // Streaks for goals
   const streaks = useAllStreaks(habits, timezone)
 
-  // Today's todo count
-  const { data: todayTodos } = useQuery({
-    queryKey: ["todos", today],
+  // Today's incomplete todo count (head-only count, no data transfer)
+  const { data: incompleteCount = 0 } = useQuery({
+    queryKey: ["todos-incomplete-count", today],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from("todos")
-        .select("*")
+        .select("*", { count: "exact", head: true })
         .eq("date", today)
-        .order("sort_order", { ascending: true })
+        .eq("completed", false)
       if (error) throw error
-      return (data || []) as TodoRow[]
+      return count || 0
     },
     staleTime: 1000 * 60 * 5,
     enabled: !!today,
   })
-  const incompleteCount = todayTodos?.filter((t) => !t.completed).length || 0
 
   const handleNavigate = useCallback(
     (direction: "prev" | "next" | "today") => {
@@ -119,7 +109,9 @@ export default function TrackerPage() {
 
   const handleToggleWeekly = useCallback(
     (habitId: string, date: string) => {
-      const current = weeklyCompletions[date]?.find((c: { habit_id: string; completed: boolean }) => c.habit_id === habitId)
+      const current = weeklyCompletions[date]?.find(
+        (c: { habit_id: string; completed: boolean }) => c.habit_id === habitId
+      )
       toggleCompletion({ habitId, date, completed: !current?.completed })
     },
     [weeklyCompletions, toggleCompletion]
@@ -127,9 +119,9 @@ export default function TrackerPage() {
 
   const handleToggleDaily = useCallback(
     (habitId: string, completed: boolean) => {
-      toggleCompletion({ habitId, date: selectedDate, completed })
+      toggleDailyCompletion({ habitId, date: selectedDate, completed })
     },
-    [selectedDate, toggleCompletion]
+    [selectedDate, toggleDailyCompletion]
   )
 
   const handleAddHabit = useCallback(
@@ -182,7 +174,7 @@ export default function TrackerPage() {
           completions={dailyCompletions || []}
           streaks={{}}
           onToggle={handleToggleDaily}
-          isToggling={isToggling}
+          isToggling={isDailyToggling}
           isLoading={isLoading}
           isFutureDate={isFuture(selectedDate, timezone)}
         />

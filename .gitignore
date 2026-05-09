@@ -22,8 +22,9 @@
 # misc
 .DS_Store
 *.pem
-.opencode
+/.opencode
 /docs
+/.agents
 
 # debug
 npm-debug.log*
@@ -39,3 +40,4 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+

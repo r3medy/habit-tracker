@@ -259,7 +259,16 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      batch_update_sort_order: {
+        Args: {
+          p_table: string
+          p_ids: string[]
+          p_orders: number[]
+        }
+        Returns: undefined
+      }
+    }
     Enums: Record<string, never>
   }
 }
