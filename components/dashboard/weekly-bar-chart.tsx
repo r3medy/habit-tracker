@@ -20,7 +20,11 @@ interface WeeklyBarChartProps {
   isLoading: boolean
 }
 
-export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChartProps) {
+export function WeeklyBarChart({
+  completions,
+  habits,
+  isLoading,
+}: WeeklyBarChartProps) {
   const habitMap = useMemo(() => {
     const map = new Map<string, HabitRow>()
     for (const h of habits) map.set(h.id, h)
@@ -30,7 +34,10 @@ export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChar
   const data = useMemo(() => {
     const now = new Date()
     const fourWeeksAgo = subWeeks(now, 4)
-    const weeks = eachWeekOfInterval({ start: fourWeeksAgo, end: now }, { weekStartsOn: 1 }).slice(0, 4)
+    const weeks = eachWeekOfInterval(
+      { start: fourWeeksAgo, end: now },
+      { weekStartsOn: 1 }
+    ).slice(-4)
 
     const result: Record<string, Record<string, number>> = {}
 
@@ -51,7 +58,8 @@ export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChar
         if (d >= weekStart && d <= weekEnd) {
           const habit = habitMap.get(c.habit_id)
           if (habit) {
-            result[weekLabel][habit.name] = (result[weekLabel][habit.name] || 0) + 1
+            result[weekLabel][habit.name] =
+              (result[weekLabel][habit.name] || 0) + 1
           }
         }
       }
@@ -80,8 +88,15 @@ export function WeeklyBarChart({ completions, habits, isLoading }: WeeklyBarChar
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="week" className="text-xs fill-muted-foreground" tick={{ fontSize: 12 }} />
-            <YAxis className="text-xs fill-muted-foreground" tick={{ fontSize: 12 }} />
+            <XAxis
+              dataKey="week"
+              className="fill-muted-foreground text-xs"
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis
+              className="fill-muted-foreground text-xs"
+              tick={{ fontSize: 12 }}
+            />
             <Tooltip
               cursor={{ fill: "currentColor", opacity: 0.05 }}
               contentStyle={{

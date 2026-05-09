@@ -143,6 +143,8 @@ export function useCompletionsRange(startDate: string, endDate: string) {
       })
       queryClient.invalidateQueries({ queryKey: ["completions", vars.date] })
       queryClient.invalidateQueries({ queryKey: ["streaks"] })
+      queryClient.invalidateQueries({ queryKey: ["perfect-day-streak"] })
+      queryClient.invalidateQueries({ queryKey: ["habit-streak-stats"] })
       queryClient.invalidateQueries({ queryKey: ["goal-completion-counts"] })
     },
   })

@@ -11,6 +11,14 @@ vi.mock("next/navigation", () => ({
   usePathname: () => mockPathname,
 }))
 
+vi.mock("@/hooks/use-user-profile", () => ({
+  useUserProfile: () => ({
+    profile: null,
+    isLoading: false,
+    error: null,
+  }),
+}))
+
 const { default: AppLayout } = await import("@/app/(app)/layout")
 
 describe("AppLayout", () => {

@@ -104,23 +104,3 @@ begin
   end if;
 end;
 $$;
-
-/*
--- RLS Migration (Prerequisites for Multi-Tenant / Production)
--- Note: Uncomment and adapt if migrating to proper Supabase Auth
-
-alter table habits add column user_id uuid references auth.users(id);
-alter table completions add column user_id uuid references auth.users(id);
-alter table todos add column user_id uuid references auth.users(id);
-alter table goals add column user_id uuid references auth.users(id);
-
-alter table habits enable row level security;
-alter table completions enable row level security;
-alter table todos enable row level security;
-alter table goals enable row level security;
-alter table journal_entries enable row level security;
-alter table goal_milestones enable row level security;
-alter table user_profile enable row level security;
-
-create policy habits_user_policy on habits for all using (user_id = (select auth.uid()));
-*/
