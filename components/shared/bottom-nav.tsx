@@ -3,7 +3,9 @@
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { LayoutGrid, ListTodo, BarChart3, Pencil } from "lucide-react"
+import { LayoutGrid, ListTodo, BarChart3, Pencil, Sun, Moon } from "lucide-react"
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 const navItems = [
   { href: "/tracker", icon: LayoutGrid, label: "Tracker" },
@@ -14,6 +16,12 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname()
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   if (pathname === "/onboarding") return null
 
@@ -40,6 +48,18 @@ export function BottomNav() {
             </Link>
           )
         })}
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Toggle theme"
+        >
+          {mounted && theme === "dark" ? (
+            <Moon className="size-5" />
+          ) : (
+            <Sun className="size-5" />
+          )}
+          <span>Theme</span>
+        </button>
       </div>
     </nav>
   )
