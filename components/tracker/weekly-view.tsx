@@ -116,6 +116,7 @@ export function WeeklyView({
                 completions={completionLookup}
                 onToggle={onToggle}
                 isToggling={isToggling}
+                timezone={timezone}
               />
             </div>
           ))}

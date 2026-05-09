@@ -7,7 +7,7 @@ import { useHabits } from "@/hooks/use-habits"
 import { useCompletions } from "@/hooks/use-completions"
 import { useUserProfile } from "@/hooks/use-user-profile"
 import { getTodayInTimeZone } from "@/lib/date-utils"
-import { getWeekRange, getDaysInWeek } from "@/lib/tracker-utils"
+import { getWeekRange, getDaysInWeek, isFuture } from "@/lib/tracker-utils"
 import { TrackerHeader } from "@/components/tracker/tracker-header"
 import { DayResetIndicator } from "@/components/tracker/day-reset-indicator"
 import { WeeklyView } from "@/components/tracker/weekly-view"
@@ -184,6 +184,7 @@ export default function TrackerPage() {
           onToggle={handleToggleDaily}
           isToggling={isToggling}
           isLoading={isLoading}
+          isFutureDate={isFuture(selectedDate, timezone)}
         />
       )}
 

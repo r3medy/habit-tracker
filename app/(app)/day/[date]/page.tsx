@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getHabitColor, getHabitIcon } from "@/lib/habit-utils"
-import { formatDayFull } from "@/lib/tracker-utils"
+import { formatDayFull, isFuture } from "@/lib/tracker-utils"
 import { ArrowLeft } from "lucide-react"
 import { JournalSection } from "@/components/dashboard/journal-section"
 
@@ -29,6 +29,7 @@ export default function DayDetailPage() {
   }
 
   const isLoading = habitsLoading || completionsLoading
+  const isFutureDate = isFuture(date, timezone)
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
@@ -71,8 +72,8 @@ export default function DayDetailPage() {
                 <span className="flex-1 text-sm font-medium">{habit.name}</span>
                 <Checkbox
                   checked={completed}
-                  disabled={isToggling}
-                  onCheckedChange={() => toggleCompletion({ habitId: habit.id, date, completed: !completed })}
+                  disabled={isToggling || isFutureDate}
+                  onCheckedChange={() => !isFutureDate && toggleCompletion({ habitId: habit.id, date, completed: !completed })}
                   className="size-5"
                 />
               </div>

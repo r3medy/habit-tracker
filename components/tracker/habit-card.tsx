@@ -12,6 +12,7 @@ interface HabitCardProps {
   streak: number
   onToggle: (completed: boolean) => void
   isToggling: boolean
+  disabled?: boolean
 }
 
 interface HabitIconProps {
@@ -31,6 +32,7 @@ export function HabitCard({
   streak,
   onToggle,
   isToggling,
+  disabled = false,
 }: HabitCardProps) {
   const borderColor = getHabitColor(habit.color)
   const checked = completion?.completed ?? false
@@ -60,8 +62,8 @@ export function HabitCard({
         <div className="flex items-center gap-2">
           <Checkbox
             checked={checked}
-            disabled={isToggling}
-            onCheckedChange={(val) => onToggle(val === true)}
+            disabled={isToggling || disabled}
+            onCheckedChange={(val) => !disabled && onToggle(val === true)}
             className="size-5"
           />
         </div>

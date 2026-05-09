@@ -14,6 +14,7 @@ interface HabitRowProps {
   completions: Record<string, Record<string, CompletionRow | undefined>>
   onToggle: (habitId: string, date: string) => void
   isToggling: boolean
+  timezone: string
 }
 
 function isHabitScheduledForDay(habit: HabitRow, dayIndex: number): boolean {
@@ -24,7 +25,7 @@ function isHabitScheduledForDay(habit: HabitRow, dayIndex: number): boolean {
   return true
 }
 
-export function HabitRow({ habit, weekDays, completions, onToggle, isToggling }: HabitRowProps) {
+export function HabitRow({ habit, weekDays, completions, onToggle, isToggling, timezone }: HabitRowProps) {
   const borderColor = getHabitColor(habit.color)
   const icon = getHabitIcon(habit.icon)
 
@@ -50,7 +51,7 @@ export function HabitRow({ habit, weekDays, completions, onToggle, isToggling }:
         {weekDays.map((date, index) => {
           const completion = completions[date]?.[habit.id]
           const checked = completion?.completed ?? false
-          const future = isFuture(date, "UTC")
+          const future = isFuture(date, timezone)
           const scheduled = isHabitScheduledForDay(habit, index)
 
           return (

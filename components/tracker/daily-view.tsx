@@ -12,6 +12,7 @@ interface DailyViewProps {
   onToggle: (habitId: string, completed: boolean) => void
   isToggling: boolean
   isLoading: boolean
+  isFutureDate?: boolean
 }
 
 export function DailyView({
@@ -22,6 +23,7 @@ export function DailyView({
   onToggle,
   isToggling,
   isLoading,
+  isFutureDate = false,
 }: DailyViewProps) {
   if (isLoading) {
     return (
@@ -57,6 +59,7 @@ export function DailyView({
           streak={streaks[habit.id] ?? 0}
           onToggle={(completed) => onToggle(habit.id, completed)}
           isToggling={isToggling}
+          disabled={isFutureDate}
         />
       ))}
     </div>
